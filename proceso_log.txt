@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "D:\LESLIE\Nueva carpeta (2)\Proyecto\11_Create_Index_File.py", line 24, in <module>
+    from docx import Document
+  File "C:\Users\LESLIE CRUZ\AppData\Local\Programs\Python\Python312\Lib\site-packages\docx.py", line 30, in <module>
+    from exceptions import PendingDeprecationWarning
+ModuleNotFoundError: No module named 'exceptions'
+Traceback (most recent call last):
+  File "D:\LESLIE\Nueva carpeta (2)\Proyecto\11_Create_Index_File.py", line 24, in <module>
+    from docx import Document
+  File "C:\Users\LESLIE CRUZ\AppData\Local\Programs\Python\Python312\Lib\site-packages\docx.py", line 30, in <module>
+    from exceptions import PendingDeprecationWarning
+ModuleNotFoundError: No module named 'exceptions'
+Traceback (most recent call last):
+  File "D:\LESLIE\Nueva carpeta (2)\Proyecto\11_Create_Index_File.py", line 24, in <module>
+    from docx import Document
+  File "C:\Users\LESLIE CRUZ\AppData\Local\Programs\Python\Python312\Lib\site-packages\docx.py", line 30, in <module>
+    from exceptions import PendingDeprecationWarning
+ModuleNotFoundError: No module named 'exceptions'
+Traceback (most recent call last):
+  File "D:\LESLIE\Nueva carpeta (2)\Proyecto\11_Create_Index_File.py", line 24, in <module>
+    from docx import Document
+  File "C:\Users\LESLIE CRUZ\AppData\Local\Programs\Python\Python312\Lib\site-packages\docx.py", line 30, in <module>
+    from exceptions import PendingDeprecationWarning
+ModuleNotFoundError: No module named 'exceptions'
+Traceback (most recent call last):
+  File "D:\LESLIE\Nueva carpeta (2)\Proyecto\11_Create_Index_File.py", line 24, in <module>
+    from docx import Document
+  File "C:\Users\LESLIE CRUZ\AppData\Local\Programs\Python\Python312\Lib\site-packages\docx.py", line 30, in <module>
+    from exceptions import PendingDeprecationWarning
+ModuleNotFoundError: No module named 'exceptions'
