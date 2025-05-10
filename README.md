@@ -16,7 +16,7 @@ seguiremos los siguientes pasos:
   - Que sea excel
   - Que contenga la palabra indice
 2. Eliminar todas las carpetas vacías y todos los índices electrónicos existentes en la ruta a organizar  
-que cumplan las siguientes condiciones.
+que contengan la palabra indice en su nombre ya sea con mayusculas o minusculas y sean excel
 
 ---
 
