@@ -110,13 +110,13 @@ Estructura de carpetas hasta ahora:
 3. Verificar si existe la carpeta `01PrimeraInstancia/C01Principal`.
 4. Mover archivos de la carpeta `056314` a `01PrimeraInstancia/C01Principal/`.
 
-Resultado:
+Ejemplo de Resultado:
 - 05380408900120230009400 EjecutivoSingula/
 -- 01PrimeraInstancia/
 --- C01Principal/
 ---- archivo1.jpg
+---- subsanacion/
 --- C05MedidasCautelares/
--- subsanacion/
 
 ---
 
