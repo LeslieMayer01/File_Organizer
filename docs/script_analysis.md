@@ -117,6 +117,8 @@ radicado del despacho**
     palabras_acumulacion = ['acumulacion', 'ACUMULACION', 'Acumulacion']
     palabras_titulos = ['deposito', 'titulo', 'TITULO' 'Deposito' 'DEPOSITOS'
 'Titulo', 'DJ04']
+palabras_indicentes = ['indidente', 'incidentes', 'INCIDENTE', ' Incidente',
+'Incidentes', 'INCIDENTES']
 **NOTA**: Revisar estas palabras basado en el reporte de nombres de carpetas.
 
 4. Si se detecta, **renombrar** la carpeta.
@@ -124,6 +126,7 @@ radicado del despacho**
     palabras_medidas -> C05MedidasCautelares
     palabras_acumulacion -> C03AcumulacionProcesos
     palabras_titulos -> C04DepositosJudiciales
+    palabras_incidentes -> C02Incidentes
 
 5. Si no existen carpetas que inicien con C0, y solo archivos y solo una carpeta
 llamada 01PrimeraInstancia entonces
