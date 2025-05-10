@@ -33,26 +33,23 @@ def crear_carpeta_principal(ruta_base, archivo_excel):
                 print(f"Renombrada: '{dir_name}' a '{nueva_carpeta}'")
 
             # Proceder a crear la carpeta 'C01Principal' dentro de la carpeta que comienza con '056314'
-            if dir_name.startswith('056314'):
-                ruta_c01principal = os.path.join(ruta_carpeta, 'C01Principal')
+            if dir_name.startswith("056314"):
+                ruta_c01principal = os.path.join(ruta_carpeta, "C01Principal")
 
                 if not os.path.exists(ruta_c01principal):
                     # Crear la carpeta C01Principal
                     os.mkdir(ruta_c01principal)
-                    estado = 'CREADA'
+                    estado = "CREADA"
                     print(f"Carpeta C01Principal creada en: {ruta_c01principal}")
                 else:
-                    estado = 'OMITIDA'
+                    estado = "OMITIDA"
                     print(f"La carpeta C01Principal ya existía en: {ruta_c01principal}")
 
                 # Añadir la información al registro
-                datos_carpetas.append({
-                    'Estado': estado,
-                    'Ruta': ruta_c01principal
-                })
+                datos_carpetas.append({"Estado": estado, "Ruta": ruta_c01principal})
 
     # Crear un DataFrame con los datos recolectados
-    df = pd.DataFrame(datos_carpetas, columns=['Estado', 'Ruta'])
+    df = pd.DataFrame(datos_carpetas, columns=["Estado", "Ruta"])
 
     # Guardar los datos en un archivo Excel
     df.to_excel(archivo_excel, index=False)
@@ -61,7 +58,7 @@ def crear_carpeta_principal(ruta_base, archivo_excel):
 
 def añadir_fecha_y_hora_al_nombre(archivo):
     # Obtiene la fecha y hora actual
-    fecha_hora_actual = datetime.now().strftime('%d-%m-%Y_%H-%M')
+    fecha_hora_actual = datetime.now().strftime("%d-%m-%Y_%H-%M")
 
     # Separa el nombre del archivo y la extensión
     nombre, extension = os.path.splitext(archivo)
@@ -71,7 +68,10 @@ def añadir_fecha_y_hora_al_nombre(archivo):
 
     return nuevo_nombre
 
+
 # Uso de la función
-ruta_directorio = r'D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DE PROCESOS JUDICIALES\CONTENCIOSOS DE MINIMA Y MENOR CUANTIA CIVIL\VIGENTES'
-archivo_excel = "./reports/05_"+ añadir_fecha_y_hora_al_nombre("Create_C01_Principal_Folder_Report.xlsx")
+ruta_directorio = r"D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DE PROCESOS JUDICIALES\CONTENCIOSOS DE MINIMA Y MENOR CUANTIA CIVIL\VIGENTES"
+archivo_excel = "./reports/05_" + añadir_fecha_y_hora_al_nombre(
+    "Create_C01_Principal_Folder_Report.xlsx"
+)
 crear_carpeta_principal(ruta_directorio, archivo_excel)

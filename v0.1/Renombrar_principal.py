@@ -5,6 +5,7 @@ prefijo = "056314"
 strings_a_buscar = ["escaneado", "digital", "expediente" "C01Prin"]
 nuevo_nombre = "C01Principal"
 
+
 # Función para buscar y renombrar carpetas
 def buscar_y_renombrar(base_dir):
     for root, dirs, files in os.walk(base_dir):
@@ -14,6 +15,7 @@ def buscar_y_renombrar(base_dir):
                 carpeta_actual = os.path.join(root, dir_name)
                 # Llamada recursiva para buscar en subcarpetas
                 renombrar_subcarpetas(carpeta_actual)
+
 
 def renombrar_subcarpetas(carpeta):
     for sub_dir in os.listdir(carpeta):
@@ -30,10 +32,14 @@ def renombrar_subcarpetas(carpeta):
                     ruta_subcarpeta = nueva_ruta
                     print(f"Renombrada: {ruta_subcarpeta} a {nueva_ruta}")
                 else:
-                    print(f"Omitida: {ruta_subcarpeta} porque {nuevo_nombre} ya existe.")
+                    print(
+                        f"Omitida: {ruta_subcarpeta} porque {nuevo_nombre} ya existe."
+                    )
             # Llamada recursiva para buscar en subcarpetas
             renombrar_subcarpetas(ruta_subcarpeta)
 
 
 # Cambia 'ruta/base/del/directorio' por la ruta que quieras analizar
-buscar_y_renombrar(r'C:\Users\LESLIE CRUZ\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DIGITALIZADOS DESDE JUNIO 2020')
+buscar_y_renombrar(
+    r"C:\Users\LESLIE CRUZ\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DIGITALIZADOS DESDE JUNIO 2020"
+)

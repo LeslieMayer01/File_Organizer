@@ -1,3 +1,5 @@
+exclude: ^v0\.1/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -12,7 +14,7 @@ repos:
     rev: 24.3.0
     hooks:
       - id: black
-        language_version: python3.9  # O el que estés usando
+        language_version: python3.12
 
   - repo: https://github.com/PyCQA/flake8
     rev: 7.0.0
@@ -24,4 +26,14 @@ repos:
     rev: v1.9.0
     hooks:
       - id: mypy
-        language_version: python3.9  # Si usas tipado estático
+        language_version: python3.12
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        name: markdownlint
+        entry: markdownlint
+        language: node
+        types: [markdown]
+        additional_dependencies: []
