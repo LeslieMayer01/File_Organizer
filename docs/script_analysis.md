@@ -19,7 +19,8 @@ siguientes condiciones:
 
 2. **Eliminar** todas las carpetas vacías y todos los índices electrónicos
 existentes en la ruta a organizar que
-cumplan las condiciones anteriores.
+cumplan que contengan la palabra indice en su nombre ya sea con mayusculas o
+minusculas y sean excel
 
 ---
 
