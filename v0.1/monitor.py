@@ -44,7 +44,7 @@ def run_process(log_file_path):
 
 if __name__ == "__main__":
     process_name = "11_Create_Index_File.py"
-    log_file_path = "proceso_log.txt"  # Archivo donde se guardará el log
+    log_file_path = "../proceso_log.txt"  # Archivo donde se guardará el log
     
     while True:
         # Revisar si el proceso está corriendo

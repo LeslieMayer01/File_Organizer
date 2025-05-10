@@ -141,7 +141,7 @@ def apply_border_to_row(ws, row):
 
 def copy_and_modify_excel(folder_path, target_folder, index_number, radicado ,dir_name):
     # Crear la copia del archivo FormatoIndiceElectronico.xlsm con el nuevo nombre
-    source_file = 'FormatoIndiceElectronico.xlsm'
+    source_file = '../data/FormatoIndiceElectronico.xlsm'
     new_file_name = f"00IndiceElectronicoC0{index_number}.xlsm"
     new_file_path = os.path.join(target_folder, new_file_name)
 
