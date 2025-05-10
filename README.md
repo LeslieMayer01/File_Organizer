@@ -99,6 +99,3 @@ El índice electrónico del expediente es el mecanismo para identificar la **tot
   - Abreviaturas.
 - Si el nombre contiene un número de un solo dígito, debe estar antecedido por **0**.
 - Fechas deben ir en formato `AAAAMMDD` (ej. 20250508 para 8 de mayo de 2025).
-
-
-
