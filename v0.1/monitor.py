@@ -3,18 +3,20 @@ import subprocess
 import time
 import os
 
+
 def is_process_running(process_name):
     """
     Revisa si un proceso con el nombre especificado está en ejecución.
     """
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
         try:
-            cmdline = proc.info['cmdline']
+            cmdline = proc.info["cmdline"]
             if cmdline and process_name in cmdline:
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return False
+
 
 def run_process(log_file_path):
     """
@@ -22,12 +24,12 @@ def run_process(log_file_path):
     También guarda el log de la salida en un archivo.
     Si el proceso imprime el texto esperado, detiene la ejecución.
     """
-    with open(log_file_path, 'a') as log_file:
+    with open(log_file_path, "a") as log_file:
         process = subprocess.Popen(
             [r".\env\Scripts\python.exe", ".\\11_Create_Index_File.py"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,  # Captura tanto stdout como stderr
-            text=True
+            text=True,
         )
 
         # Monitorear la salida del script
@@ -42,10 +44,11 @@ def run_process(log_file_path):
                 process.terminate()  # Terminar el proceso si el mensaje es encontrado
                 return
 
+
 if __name__ == "__main__":
     process_name = "11_Create_Index_File.py"
     log_file_path = "../proceso_log.txt"  # Archivo donde se guardará el log
-    
+
     while True:
         # Revisar si el proceso está corriendo
         if not is_process_running(process_name):
@@ -53,6 +56,6 @@ if __name__ == "__main__":
             run_process(log_file_path)
         else:
             print(f"El proceso '{process_name}' ya está corriendo.")
-        
+
         # Esperar 60 segundos antes de volver a verificar
         time.sleep(60)

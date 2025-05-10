@@ -1,5 +1,6 @@
 import os
 
+
 def delete_files_by_prefix(root_folder, target_prefix):
     """
     Busca recursivamente archivos cuyos nombres empiezan con un prefijo específico y los borra.
@@ -17,10 +18,11 @@ def delete_files_by_prefix(root_folder, target_prefix):
                 except Exception as e:
                     print(f"No se pudo eliminar {file_path}. Error: {e}")
 
+
 if __name__ == "__main__":
     # Especifica la ruta de la carpeta raíz y el prefijo del archivo que deseas eliminar
-    folder_path = r'D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\04. EXPEDIENTES DE TUTELAS\08 TUTELAS 2025'
+    folder_path = r"D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\04. EXPEDIENTES DE TUTELAS\08 TUTELAS 2025"
     target_prefix = "00IndiceElectronico"
-    
+
     # Llamar a la función para eliminar los archivos
     delete_files_by_prefix(folder_path, target_prefix)

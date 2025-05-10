@@ -55,3 +55,7 @@ test-results/
 # Archivos generados por pip
 pip-log.txt
 pip-delete-this-directory.txt
+
+*.csv
+reports/
+logs/

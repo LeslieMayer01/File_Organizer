@@ -24,6 +24,5 @@ def eliminar_carpetas_vacias_01PrimeraInstancia(ruta):
 
 
 # Ejemplo de uso
-ruta_principal = r'D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DE PROCESOS JUDICIALES\CONTENCIOSOS DE MINIMA Y MENOR CUANTIA CIVIL\VIGENTES'  # Cambia esta ruta por la que quieras analizar
+ruta_principal = r"D:\OneDrive\OneDrive - Consejo Superior de la Judicatura\01. EXPEDIENTES DE PROCESOS JUDICIALES\CONTENCIOSOS DE MINIMA Y MENOR CUANTIA CIVIL\VIGENTES"  # Cambia esta ruta por la que quieras analizar
 eliminar_carpetas_vacias_01PrimeraInstancia(ruta_principal)
-
