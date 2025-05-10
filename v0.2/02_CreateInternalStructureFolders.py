@@ -2,135 +2,91 @@ import os
 import pandas as pd
 from datetime import datetime
 
-# Función para crear la carpeta 01PrimeraInstancia
-def crear_carpeta_principal(ruta_base, archivo_excel, solo_reporte=False):
-    datos_carpetas = []
-
-    # Iterar recursivamente por todas las carpetas en el directorio base
-    for root, dirs, files in os.walk(ruta_base):
-        for dir_name in dirs:
-            # Ruta completa de la carpeta actual
-            ruta_carpeta = os.path.join(root, dir_name)
-
-            # Verificar si el nombre de la carpeta comienza con "053804"
-            if dir_name.startswith("053804"):
-                # Verificar si no existe 01PrimeraInstancia o 01UnicaInstancia
-                if not os.path.exists(os.path.join(ruta_carpeta, '01PrimeraInstancia')) and not os.path.exists(os.path.join(ruta_carpeta, '01UnicaInstancia')):
-                    nueva_carpeta = "01PrimeraInstancia"
-                    nueva_ruta = os.path.join(ruta_carpeta, nueva_carpeta)
-
-                    if not solo_reporte:
-                        # Crear la carpeta 01PrimeraInstancia si no existe
-                        os.mkdir(nueva_ruta)
-                        estado = 'CREADA'
-                        print(f"Carpeta 01PrimeraInstancia creada en: {nueva_ruta}")
-                    else:
-                        estado = 'A CREAR'
-
-                    # Registrar la acción en los datos
-                    datos_carpetas.append({
-                        'Estado': estado,
-                        'Ruta': nueva_ruta
-                    })
-
-    # Crear un DataFrame con los datos recolectados
-    df = pd.DataFrame(datos_carpetas, columns=['Estado', 'Ruta'])
-
-    # Guardar los datos en un archivo Excel
-    df.to_excel(archivo_excel, index=False)
-    print(f"Datos guardados en {archivo_excel}")
-
-
-# Función para renombrar las carpetas
-def renombrar_carpetas(ruta_base, archivo_excel, solo_reporte=False):
-    # Palabras clave para identificar las carpetas
-    palabras_principal = ['principal', 'Principal', 'ppal', 'PPAL', 'Ppal', 'PRINCIPAL', 'CuadernoUnico', '01.Expediente Restitutucion 056314089001201800150  ST', '01 Unica Instancia']
-    palabras_medidas = ['medida', 'Medida', 'MEDIDA', 'M.C', 'M. Cautelar', 'Media Cautelar', 'MS', 'Medias Cautelares', 'MEDIDA CAUTELAR']
-    palabras_acumulacion = ['acumulacion', 'ACUMULACION', 'Acumulacion']
-    palabras_titulos = ['deposito', 'titulo', 'TITULO', 'Deposito', 'DEPOSITOS', 'Titulo', 'DJ04']
-    palabras_incidentes = ['indidente', 'incidentes', 'INCIDENTE', ' Incidente', 'Incidentes', 'INCIDENTES']
-
-    # Lista para almacenar la información que se escribirá en el Excel
-    datos_renombrados = []
-    
-    # Iterar recursivamente por las carpetas
-    for root, dirs, files in os.walk(ruta_base):
-        for dir_name in dirs:
-            nuevo_nombre = None
-            estado = ""
-
-            # Omite las carpetas que ya tienen el nombre correcto
-            if dir_name in ['C01Principal', 'C05MedidasCautelares', 'C03AcumulacionProcesos', 'C04DepositosJudiciales']:
-                continue
-
-            # Verificar si el nombre de la carpeta contiene una palabra clave para "Principal"
-            if any(palabra in dir_name for palabra in palabras_principal):
-                nuevo_nombre = 'C01Principal'
-                
-            # Verificar si el nombre de la carpeta contiene una palabra clave para "Medidas Cautelares"
-            elif any(palabra in dir_name for palabra in palabras_medidas):
-                nuevo_nombre = 'C05MedidasCautelares'
-
-            elif any(palabra in dir_name for palabra in palabras_acumulacion):
-                nuevo_nombre = 'C03AcumulacionProcesos'
-
-            elif any(palabra in dir_name for palabra in palabras_titulos):
-                nuevo_nombre = 'C04DepositosJudiciales'
-
-            elif any(palabra in dir_name for palabra in palabras_incidentes):
-                nuevo_nombre = 'C02Incidentes'
-
-            # Si se detectó que se debe renombrar
-            if nuevo_nombre:
-                ruta_antigua = os.path.join(root, dir_name)
-                ruta_nueva = os.path.join(root, nuevo_nombre)
-                
-                # Verificar si ya existe una carpeta con el nuevo nombre
-                if os.path.exists(ruta_nueva):
-                    estado = "DUPLICADA"
-                    print(f"No se renombró {dir_name} porque ya existe {nuevo_nombre}")
-                else:
-                    try:
-                        if not solo_reporte:
-                            os.rename(ruta_antigua, ruta_nueva)
-                            estado = "RENOMBRADA"
-                            print(f"Carpeta renombrada: {dir_name} a {nuevo_nombre}")
-                        else:
-                            estado = "A RENOMBRAR"
-                    except Exception as e:
-                        estado = f"ERROR: {e}"
-            
-                # Agregar la información al archivo Excel
-                datos_renombrados.append({
-                    'Nombre Anterior': dir_name,
-                    'Nombre Nuevo': nuevo_nombre,
-                    'Estado': estado,
-                    'Ruta Absoluta': ruta_antigua if estado == "DUPLICADA" else ruta_nueva
-                })
-    
-    # Crear el DataFrame con los datos recolectados
-    df = pd.DataFrame(datos_renombrados, columns=['Nombre Anterior', 'Nombre Nuevo', 'Estado', 'Ruta Absoluta'])
-    
-    # Guardar los datos en el archivo Excel
-    df.to_excel(archivo_excel, index=False)
-    print(f"Datos guardados en {archivo_excel}")
-
-# Función para añadir la fecha y hora al nombre del archivo
 def añadir_fecha_y_hora_al_nombre(archivo):
     fecha_hora_actual = datetime.now().strftime('%d-%m-%Y_%H-%M')
     nombre, extension = os.path.splitext(archivo)
     nuevo_nombre = f"{fecha_hora_actual}-{nombre}{extension}"
     return nuevo_nombre
 
-# Ruta base y archivo para reporte
+def gestionar_estructura_carpetas(ruta_base, archivo_excel, solo_reporte=False):
+    palabras_clave = {
+        'C01Principal': ['principal', 'Principal', 'ppal', 'PPAL', 'Ppal', 'PRINCIPAL', 'CuadernoUnico', '01.Expediente Restitutucion 056314089001201800150  ST', '01 Unica Instancia'],
+        'C05MedidasCautelares': ['medida', 'Medida', 'MEDIDA', 'M.C', 'M. Cautelar', 'Media Cautelar', 'MS', 'Medias Cautelares', 'MEDIDA CAUTELAR'],
+        'C03AcumulacionProcesos': ['acumulacion', 'ACUMULACION', 'Acumulacion'],
+        'C04DepositosJudiciales': ['deposito', 'titulo', 'TITULO', 'Deposito', 'DEPOSITOS', 'Titulo', 'DJ04'],
+        'C02Incidentes': ['indidente', 'incidentes', 'INCIDENTE', ' Incidente', 'Incidentes', 'INCIDENTES']
+    }
+
+    reportes = []
+
+    for root, dirs, files in os.walk(ruta_base):
+        for dir_name in dirs:
+            ruta_actual = os.path.join(root, dir_name)
+
+            if dir_name.startswith("053804"):
+                ruta_053804 = ruta_actual
+
+                # Crear 01PrimeraInstancia si no existen ni 01PrimeraInstancia ni 01UnicaInstancia
+                if not any(os.path.isdir(os.path.join(ruta_053804, nombre)) for nombre in ['01PrimeraInstancia', '01UnicaInstancia']):
+                    nueva_carpeta = os.path.join(ruta_053804, '01PrimeraInstancia')
+                    estado = 'A CREAR'
+                    if not solo_reporte:
+                        os.mkdir(nueva_carpeta)
+                        estado = 'CREADA'
+                    reportes.append({'Acción': 'Crear Carpeta', 'Estado': estado, 'Ruta': nueva_carpeta})
+
+                # Verificar si hay alguna carpeta que comience con C0
+                tiene_C0 = any(d.startswith("C0") for d in os.listdir(ruta_053804) if os.path.isdir(os.path.join(ruta_053804, d)))
+                if not tiene_C0:
+                    ruta_C0 = os.path.join(ruta_053804, 'C01Principal')
+                    estado = 'A CREAR'
+                    if not solo_reporte:
+                        os.mkdir(ruta_C0)
+                        estado = 'CREADA'
+                    reportes.append({'Acción': 'Crear Carpeta', 'Estado': estado, 'Ruta': ruta_C0})
+
+        # Segundo recorrido para renombrar según palabras clave
+        for dir_name in dirs:
+            ruta_carpeta = os.path.join(root, dir_name)
+
+            # Omitir nombres ya correctos
+            if dir_name in palabras_clave.keys():
+                continue
+
+            for nuevo_nombre, palabras in palabras_clave.items():
+                if any(palabra in dir_name for palabra in palabras):
+                    ruta_nueva = os.path.join(root, nuevo_nombre)
+
+                    if os.path.exists(ruta_nueva):
+                        estado = "DUPLICADA"
+                    else:
+                        if not solo_reporte:
+                            try:
+                                os.rename(ruta_carpeta, ruta_nueva)
+                                estado = "RENOMBRADA"
+                            except Exception as e:
+                                estado = f"ERROR: {e}"
+                        else:
+                            estado = "A RENOMBRAR"
+
+                    reportes.append({
+                        'Acción': 'Renombrar Carpeta',
+                        'Nombre Anterior': dir_name,
+                        'Nombre Nuevo': nuevo_nombre,
+                        'Estado': estado,
+                        'Ruta': ruta_nueva if estado != "DUPLICADA" else ruta_carpeta
+                    })
+                    break  # Evita múltiples renombramientos para la misma carpeta
+
+    df = pd.DataFrame(reportes)
+    df.to_excel(archivo_excel, index=False)
+    print(f"Reporte generado en: {archivo_excel}")
+
+# Configuración
 ruta_directorio = r'C:\Users\Usuario\Downloads\Proyectos\J1'
-archivo_creacion = "./reports/01_" + añadir_fecha_y_hora_al_nombre("Reporte_Creacion_Carpeta.xlsx")
-archivo_renombrado = "./reports/02_" + añadir_fecha_y_hora_al_nombre("Reporte_Renombrado_Carpeta.xlsx")
+archivo_reporte = "./reports/" + añadir_fecha_y_hora_al_nombre("Reporte_Gestion_Carpetas.xlsx")
 
-# Llamada a las funciones
-# Para solo generar reporte de la primera parte (creación de carpetas)
-crear_carpeta_principal(ruta_directorio, archivo_creacion, solo_reporte=True)
+# Llamada principal
+gestionar_estructura_carpetas(ruta_directorio, archivo_reporte, solo_reporte=True)  # Cambia a False para ejecutar
 
-# Para solo generar reporte de las carpetas que se renombrarían sin aplicar cambios
-renombrar_carpetas(ruta_directorio, archivo_renombrado, solo_reporte=True)
 
