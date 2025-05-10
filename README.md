@@ -84,12 +84,14 @@ Pasos:
     palabras_medidas = ['medida', 'Medida', 'MEDIDA', 'M.C', 'M. Cautelar', 'Media Cautelar', 'MS', 'Medias Cautelares', 'MEDIDA CAUTELAR']
     palabras_acumulacion = ['acumulacion', 'ACUMULACION', 'Acumulacion']
     palabras_titulos = ['deposito', 'titulo', 'TITULO' 'Deposito' 'DEPOSITOS' 'Titulo', 'DJ04']
+    palabras_indicentes = ['indidente', 'incidentes', 'INCIDENTE', ' Incidente', 'Incidentes', 'INCIDENTES']
 **NOTA**: Revisar estas palabras basado en el reporte de nombres de carpetas.
 4. Si se detecta, **renombrar** la carpeta. 
     palabras_principal -> C01Principal
     palabras_medidas -> C05MedidasCautelares
     palabras_acumulacion -> C03AcumulacionProcesos
     palabras_titulos -> C04DepositosJudiciales
+    palabras_incidentes -> C02Incidentes
 5. Si no existen carpetas que inicien con C0, y solo archivos y solo una carpeta llamada 01PrimeraInstancia entonces **crear una carpeta llamada `C01Principal`**.
 6. crear reporte con las carpetas que se renombraron, nombre original, nombre nuevo y ruta.
 7. crear un reporte con las carpetas nuevas, nombre y ruta.
