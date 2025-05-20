@@ -9,7 +9,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 STEPS = {
     1: "step1_clean_empty_folders",
     2: "step2_format_folders",
-    3: "step3_rename_folders",
+    3: "step3_create_internal_folder_structure",
+    4: "step4_subfolder_organization",
     # Agrega más pasos aquí según tu proyecto
 }
 
