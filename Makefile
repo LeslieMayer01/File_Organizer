@@ -18,10 +18,12 @@ check:
 	@command -v $(PYTHON) >/dev/null 2>&1 || { echo >&2 "❌ Python is not installed. Please install it first."; exit 1; }
 	@command -v $(PIP) >/dev/null 2>&1 || { echo >&2 "❌ pip is not installed. Please install it first."; exit 1; }
 	@command -v git >/dev/null 2>&1 || { echo >&2 "❌ git is not installed. Please install it first."; exit 1; }
+	@$(PYTHON) -c "import sys; exit(0) if sys.version_info[:2] == (3, 12) else exit(1)" || { echo >&2 "❌ Python 3.12 is required. Current version is: $$($(PYTHON) --version)"; exit 1; }
 	@echo "✅ All prerequisites are installed."
 
 setup:
 	$(PYTHON) -m venv $(VENV)
+	source ./venv/Scripts/activate
 	$(VENV)/Scripts/python -m pip install --upgrade pip
 	$(VENV)/Scripts/pip install -r requirements.txt
 	$(VENV)/Scripts/pre-commit install
@@ -40,3 +42,10 @@ clean:
 	@find . -type d -name "__pycache__" -exec rm -r {} +
 	@rm -rf .pytest_cache .mypy_cache .coverage htmlcov
 	@echo "✅ Cache cleaned successfully"
+	@echo "🧹 Cleaning logs and reports..."
+	@rm -rf ./logs/* ./reports/*
+	@echo "✅ Logs and reports cleaned successfully"
+
+load:
+	#In windows this make only works on git shell
+	source venv/Scripts/activate

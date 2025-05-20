@@ -1,33 +1,32 @@
 from datetime import datetime
 import os
 import csv
+import config
 
 
 def run():
     print("🧹 Step 1: Cleaning empty folders...")
-    ruta_a_organizar = r"C:\Users\Usuario\Downloads\Proyectos\J1"
-    base_path_reportes = "./reports/"
 
     # Generación del nombre del archivo CSV con la fecha y hora
     ruta_csv_salida = obtener_nombre_reporte(
-        base_path_reportes, "listado_indices_excel"
+        config.REPORTS_DIR, "step1_listado_indices"
     )
     reporte_eliminaciones = obtener_nombre_reporte(
-        base_path_reportes, "reporte_eliminaciones"
+        config.REPORTS_DIR, "step1_reporte_eliminaciones"
     )
 
     # Variable de control: Si es True, realiza eliminaciones; si es False,
     # solo genera el reporte.
-    ejecutar_eliminaciones = (
+    remove = (
         # Cambia esto a False si solo deseas generar el
         # reporte sin eliminar nada
         True
     )
 
     # Ejecutar las funciones
-    listar_indices_excel(ruta_a_organizar, ruta_csv_salida)
+    listar_indices_excel(config.FOLDER_TO_ORGANIZE, ruta_csv_salida)
     eliminar_indices_electronicos_y_carpetas_vacias(
-        ruta_a_organizar, reporte_eliminaciones, ejecutar_eliminaciones
+        config.FOLDER_TO_ORGANIZE, reporte_eliminaciones, remove
     )
 
 
@@ -70,7 +69,7 @@ def listar_indices_excel(ruta, salida_csv):
         writer.writerow(["Ruta del archivo"])
         writer.writerows(resultados)
 
-    print(f"Se guardaron {len(resultados)} archivos en {salida_csv}")
+    print(f"ℹ️ Se guardaron {len(resultados)} archivos en {salida_csv}")
 
 
 def eliminar_indices_electronicos_y_carpetas_vacias(
@@ -90,9 +89,9 @@ def eliminar_indices_electronicos_y_carpetas_vacias(
                 if ejecutar_eliminaciones:
                     try:
                         os.remove(ruta_archivo)
-                        print(f"Archivo Excel eliminado: {ruta_archivo}")
+                        print(f"✅ Archivo Excel eliminado: {ruta_archivo}")
                     except Exception as e:
-                        print(f"No se pudo eliminar {ruta_archivo}: {e}")
+                        print(f"❌ No se pudo eliminar {ruta_archivo}: {e}")
                 eliminados.append(["Archivo", ruta_archivo])
 
         # Eliminar carpetas vacías
@@ -100,9 +99,9 @@ def eliminar_indices_electronicos_y_carpetas_vacias(
             if ejecutar_eliminaciones:
                 try:
                     os.rmdir(dirpath)
-                    print(f"Carpeta vacía eliminada: {dirpath}")
+                    print(f"✅ Carpeta vacía eliminada: {dirpath}")
                 except Exception as e:
-                    print(f"No se pudo eliminar carpeta {dirpath}: {e}")
+                    print(f"❌ No se pudo eliminar carpeta {dirpath}: {e}")
             eliminados.append(["Carpeta", dirpath])
 
     # Guardar el reporte de eliminaciones en un archivo CSV
@@ -111,4 +110,4 @@ def eliminar_indices_electronicos_y_carpetas_vacias(
         writer.writerow(["Tipo de Eliminación", "Ruta"])
         writer.writerows(eliminados)
 
-    print(f"Reporte de eliminaciones guardado en {reporte_csv}")
+    print(f"📊 Reporte de eliminaciones guardado en {reporte_csv}")

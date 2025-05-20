@@ -10,6 +10,8 @@ STEPS = {
     1: "step1_clean_empty_folders",
     2: "step2_format_folders",
     3: "step3_rename_folders",
+    4: "___",
+    5: "step5_create_electronic_index",
     # Agrega más pasos aquí según tu proyecto
 }
 

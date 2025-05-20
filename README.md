@@ -21,9 +21,11 @@ and files based on naming rules and generate various reports in CSV format.
 
 Ensure you have the following installed:
 
-- Python 3.8+
+- Python 3.12+
 - pip
 - Git
+- Chocolatey (Windows)
+- Make
 - (Optional) `make` to simplify setup
 
 ### 🔧 Setup
