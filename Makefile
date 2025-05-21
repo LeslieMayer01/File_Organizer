@@ -1,9 +1,14 @@
 PYTHON := python
+PYTEST := pytest
 PIP := pip3
 VENV := venv
 ACTIVATE := source $(VENV)/bin/activate
+PYTHONPATH := src
 
-.PHONY: help check setup install lint run clean
+# Compatible con Git Bash, PowerShell y Linux
+export PYTHONPATH := src
+
+.PHONY: help check setup install lint run clean test pytest
 
 help:
 	@echo "Available commands:"
@@ -13,6 +18,10 @@ help:
 	@echo "  make lint      -> Run pre-commit hooks on all files"
 	@echo "  make run       -> Run main script (adjust as needed)"
 	@echo "  make clean     -> Remove temporary and cache files"
+	@echo "  test        Ejecuta los tests con pytest (oculta warnings)"
+	@echo "  pytest      Alias de test para correr pytest directamente"
+	@echo "  coverage    Muestra cobertura de código con pytest-cov"
+	@echo "  format     Formatea el código con black e isort"
 
 check:
 	@command -v $(PYTHON) >/dev/null 2>&1 || { echo >&2 "❌ Python is not installed. Please install it first."; exit 1; }
@@ -23,7 +32,6 @@ check:
 
 setup:
 	$(PYTHON) -m venv $(VENV)
-	source ./venv/Scripts/activate
 	$(VENV)/Scripts/python -m pip install --upgrade pip
 	$(VENV)/Scripts/pip install -r requirements.txt
 	$(VENV)/Scripts/pre-commit install
@@ -33,6 +41,11 @@ setup:
 
 lint:
 	$(VENV)/Scripts/pre-commit run --all-files
+
+format:
+	@echo Formateando código con black e isort...
+	$(PYTHON) -m black src tests
+	$(PYTHON) -m isort src tests
 
 run:
 	$(VENV)/Scripts/python src/main.py $(ARGS) | tee ./logs/run_$(shell date +%Y-%m-%d_%H-%M-%S).log
@@ -49,3 +62,15 @@ clean:
 load:
 	#In windows this make only works on git shell
 	source venv/Scripts/activate
+
+test:
+	@echo Ejecutando pruebas con pytest...
+	$(PYTHON) -m pytest -p no:warnings tests
+
+pytest:
+	@echo Ejecutando pruebas con pytest...
+	$(PYTEST) -p no:warnings tests
+
+coverage:
+	@echo Ejecutando pruebas con cobertura...
+	@PYTHONPATH=src $(PYTEST) -p no:warnings --cov=organizer --cov-report=term-missing tests

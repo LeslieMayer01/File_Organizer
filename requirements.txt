@@ -51,3 +51,9 @@ typing_extensions==4.12.2
 tzdata==2024.2
 urllib3==2.2.3
 virtualenv==20.31.2
+pytest
+pytest-mock
+mock; python_version < '3.3'
+pytest-cov
+black
+isort
