@@ -2,9 +2,14 @@ import os
 import pandas as pd
 from datetime import datetime
 
+import config
+
 # Prefijos permitidos
 prefijos_permitidos = ("05380", "01Primera", "01Unica", "C0")
 
+def run():
+    # 🔧 Cambia aquí tu ruta base
+    listar_carpetas_no_validas(config.FOLDER_TO_ORGANIZE)
 
 def añadir_fecha_y_hora_al_nombre(nombre):
     fecha_hora = datetime.now().strftime("%d-%m-%Y_%H-%M")
@@ -36,7 +41,3 @@ def listar_carpetas_no_validas(ruta_base):
         print(f"✅ Reporte Excel generado: {ruta_archivo}")
     else:
         print("✅ No se encontraron carpetas no válidas.")
-
-
-# 🔧 Cambia aquí tu ruta base
-listar_carpetas_no_validas(r"C:\Users\Usuario\Downloads\Proyectos\J1")
