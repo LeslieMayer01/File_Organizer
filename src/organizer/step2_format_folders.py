@@ -1,17 +1,20 @@
+import csv
 import os
 import re
-import csv
 from datetime import datetime
+
+import config
 
 # CONFIGURACIÓN
 execute_changes = False  # Cambia a True para ejecutar renombramientos
-ruta_base = r"C:\Users\Usuario\Downloads\Proyectos\J1"
 prefijo_despacho = "053804089001"
 
 # Generar nombre del reporte con fecha y hora
 fecha_hora_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
-report = f"./reports/reporte_cambios_{fecha_hora_actual}.csv"
-reporte_conflictos = f"./reports/reporte_conflictos_{fecha_hora_actual}.csv"
+report = f"{config.REPORTS_DIR}/step2_reporte_cambios_{fecha_hora_actual}.csv"
+reporte_conflictos = (
+    f"{config.REPORTS_DIR}/step2_reporte_conflictos_{fecha_hora_actual}.csv"
+)
 
 
 def run():
@@ -28,7 +31,7 @@ def run():
         writer_conflictos.writerow(["Ruta", "Nombre en Conflicto"])
 
         # Recorrer carpetas
-        for dirpath, dirnames, _ in os.walk(ruta_base):
+        for dirpath, dirnames, _ in os.walk(config.FOLDER_TO_ORGANIZE):
             for dirname in dirnames:
                 ruta_completa = os.path.join(dirpath, dirname)
 
@@ -50,12 +53,11 @@ def run():
 
                 if execute_changes:
                     os.rename(ruta_completa, nueva_ruta)
-                    print(f"Renombrada: {dirname} -> {nuevo_nombre}")
+                    print(f"✅ Renombrada: {dirname} -> {nuevo_nombre}")
                 else:
-                    print(f"(Simulado) Rename: {dirname} -> {nuevo_nombre}")
-
-    # Crear la carpeta 'reports' si no existe
-    os.makedirs("./reports", exist_ok=True)
+                    print(f"ℹ️ (Simulado) Rename: {dirname} -> {nuevo_nombre}")
+    print(f"📊 Reporte de cambios guardado en {report}")
+    print(f"📊 Reporte de conflictos guardado en {reporte_conflictos}")
 
 
 # Función para limpiar el nombre

@@ -1,7 +1,7 @@
 import argparse
 import importlib
-import sys
 import io
+import sys
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
@@ -12,6 +12,7 @@ STEPS = {
     3: "step3_create_internal_folder_structure",
     4: "step4_subfolder_organization",
     5: "step5_organizate_files",
+    6: "step5_create_electronic_index",
     # Agrega más pasos aquí según tu proyecto
 }
 
