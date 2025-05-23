@@ -10,6 +10,7 @@ STEPS = {
     1: "step1_clean_empty_folders",
     2: "step2_format_folders",
     3: "step3_rename_folders",
+    5: "step5_organizate_files",
     # Agrega más pasos aquí según tu proyecto
 }
 
