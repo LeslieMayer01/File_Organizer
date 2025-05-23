@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from datetime import datetime
 
+import config
+
 
 def añadir_fecha_y_hora_al_nombre(archivo):
     fecha_hora_actual = datetime.now().strftime("%d-%m-%Y_%H-%M")
@@ -11,7 +13,6 @@ def añadir_fecha_y_hora_al_nombre(archivo):
 
 
 # Configuración
-ruta_directorio = r"C:\Users\Usuario\Downloads\Proyectos\J1"
 archivo_reporte = "./reports/" + añadir_fecha_y_hora_al_nombre(
     "Reporte_Gestion_Carpetas.xlsx"
 )
@@ -20,7 +21,7 @@ archivo_reporte = "./reports/" + añadir_fecha_y_hora_al_nombre(
 def run():
     print("✏️ Step 3: Renaming folders...")
     create_folders(
-        ruta_directorio, archivo_reporte, solo_reporte=False
+        config.FOLDER_TO_ORGANIZE, archivo_reporte, solo_reporte=False
     )  # FALSE PARA CORRER TRUE PARA SIMULACIÓN
 
 

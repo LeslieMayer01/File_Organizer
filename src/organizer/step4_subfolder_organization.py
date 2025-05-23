@@ -10,7 +10,6 @@ MODO_EJECUCION = True  # Cambia a True para mover los archivos de verdad
 
 
 def run():
-
     # Ejecutar función
     mover_estructura_judicial(config.FOLDER_TO_ORGANIZE, "05380")
 
