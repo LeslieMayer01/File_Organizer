@@ -11,6 +11,7 @@ STEPS = {
     2: "step2_format_folders",
     3: "step3_create_internal_folder_structure",
     4: "step4_subfolder_organization",
+    5: "step5_organizate_files",
     # Agrega más pasos aquí según tu proyecto
 }
 
