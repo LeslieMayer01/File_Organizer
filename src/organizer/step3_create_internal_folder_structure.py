@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from datetime import datetime
 
+import config
+
 
 def añadir_fecha_y_hora_al_nombre(archivo):
     fecha_hora_actual = datetime.now().strftime("%d-%m-%Y_%H-%M")
@@ -11,7 +13,6 @@ def añadir_fecha_y_hora_al_nombre(archivo):
 
 
 # Configuración
-ruta_directorio = r"C:\Users\Usuario\Downloads\Proyectos\J1"
 archivo_reporte = "./reports/" + añadir_fecha_y_hora_al_nombre(
     "Reporte_Gestion_Carpetas.xlsx"
 )
@@ -19,10 +20,12 @@ archivo_reporte = "./reports/" + añadir_fecha_y_hora_al_nombre(
 
 def run():
     print("✏️ Step 3: Renaming folders...")
-    create_folders(ruta_directorio, archivo_reporte, solo_reporte=True)
+    create_folders(
+        config.FOLDER_TO_ORGANIZE, archivo_reporte, solo_reporte=False
+    )  # FALSE PARA CORRER TRUE PARA SIMULACIÓN
 
 
-def create_folders(ruta_base, archivo_excel, solo_reporte=False):
+def create_folders(ruta_base, archivo_excel, solo_reporte=True):
     palabras_clave = {
         "C01Principal": [
             "principal",
@@ -32,7 +35,6 @@ def create_folders(ruta_base, archivo_excel, solo_reporte=False):
             "Ppal",
             "PRINCIPAL",
             "CuadernoUnico",
-            "01.Expediente Restitutucion 056314089001201800150  ST",
             "01 Unica Instancia",
         ],
         "C05MedidasCautelares": [
@@ -64,7 +66,7 @@ def create_folders(ruta_base, archivo_excel, solo_reporte=False):
             "indidente",
             "incidentes",
             "INCIDENTE",
-            " Incidente",
+            "Incidente",
             "Incidentes",
             "INCIDENTES",
         ],

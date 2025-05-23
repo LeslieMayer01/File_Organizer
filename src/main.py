@@ -9,9 +9,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 STEPS = {
     1: "step1_clean_empty_folders",
     2: "step2_format_folders",
-    3: "step3_rename_folders",
-    4: "___",
-    5: "step5_create_electronic_index",
+    3: "step3_create_internal_folder_structure",
+    4: "step4_subfolder_organization",
+    5: "step5_organizate_files",
+    6: "step5_create_electronic_index",
     # Agrega más pasos aquí según tu proyecto
 }
 
