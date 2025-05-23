@@ -27,8 +27,10 @@ check:
 	@command -v $(PYTHON) >/dev/null 2>&1 || { echo >&2 "❌ Python is not installed. Please install it first."; exit 1; }
 	@command -v $(PIP) >/dev/null 2>&1 || { echo >&2 "❌ pip is not installed. Please install it first."; exit 1; }
 	@command -v git >/dev/null 2>&1 || { echo >&2 "❌ git is not installed. Please install it first."; exit 1; }
+	@test -f .env || { echo >&2 "❌ .env file is missing. Please copy it from .env-example"; exit 1; }
 	@$(PYTHON) -c "import sys; exit(0) if sys.version_info[:2] == (3, 12) else exit(1)" || { echo >&2 "❌ Python 3.12 is required. Current version is: $$($(PYTHON) --version)"; exit 1; }
-	@echo "✅ All prerequisites are installed."
+	@echo "✅ All prerequisites are installed, including .env"
+
 
 setup:
 	$(PYTHON) -m venv $(VENV)
@@ -48,6 +50,10 @@ format:
 	$(PYTHON) -m isort src tests
 
 run:
+	@if [ ! -f .env ]; then \
+		echo "❌ .env file is missing. Please copy it from .env-example"; \
+		exit 1; \
+	fi
 	$(VENV)/Scripts/python src/main.py $(ARGS) | tee ./logs/run_$(shell date +%Y-%m-%d_%H-%M-%S).log
 
 clean:

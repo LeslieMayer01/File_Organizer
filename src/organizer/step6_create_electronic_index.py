@@ -1,7 +1,7 @@
 import os
 import shutil
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import fitz  # PyMuPDF
 import pandas as pd
@@ -12,10 +12,10 @@ from openpyxl.styles import Alignment, Border, Side
 import config
 
 
-def run():
+def run() -> None:
     print("📄 Step 5: Create Electronic Index...")
 
-    results = process_root_folder(config.FOLDER_TO_ORGANIZE)
+    results: Dict[str, List[Any]] = scan_folder(config.FOLDER_TO_ORGANIZE)
 
     if results:
         report_path = add_datetime(
@@ -37,7 +37,7 @@ def add_datetime(file_path: str) -> str:
     return f"{timestamp}-{os.path.basename(name)}{ext}"
 
 
-def process_root_folder(root_folder: str) -> Optional[dict[str, list[Any]]]:
+def scan_folder(root_folder: str) -> Optional[dict[str, list[Any]]]:
     results = {"valid": [], "invalid": [], "omitted": []}
 
     for current_root, sub_dirs, _ in os.walk(root_folder):
@@ -186,7 +186,7 @@ def get_file_info(file_path: str) -> dict:
     )
     size = format_file_size(file_path)
     ext = file_name.split(".")[-1].upper()
-    pages = 1
+    pages: Union[int, str] = 1
 
     try:
         if ext == "PDF":
@@ -196,7 +196,13 @@ def get_file_info(file_path: str) -> dict:
     except Exception:
         pages = "error"
 
-    num = file_name[:2].lstrip("0") if file_name[:2].isdigit() else 0
+    prefix = file_name[:2]
+    num: Union[int, str] = prefix.lstrip("0") if prefix.isdigit() else 0
+
+    try:
+        file_number = int(num)
+    except (ValueError, TypeError):
+        file_number = 0
 
     return {
         "name": file_name,
@@ -204,7 +210,7 @@ def get_file_info(file_path: str) -> dict:
         "page_count": pages,
         "file_extension": ext,
         "file_size": size,
-        "file_number": int(num) if str(num).isdigit() else 0,
+        "file_number": file_number,
     }
 
 
@@ -236,12 +242,34 @@ def apply_border_to_row(ws, row):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
 
-def buscar_radicado_en_base_de_datos(radicado):
+def buscar_radicado_en_base_de_datos(radicado: str) -> list[dict]:
+    """
+    Searches for a case record in the Excel file based on the 'radicado' string.
+
+    Returns a list of dictionaries with column 4 (Plaintiff) and column 5 (Defendant),
+    or an empty list if the file doesn't exist or no match is found.
+    """
     base_file = "BaseDatosRadicados.xlsx"
     path = os.path.join(config.DATA_DIR, base_file)
-    df = pd.read_excel(path, header=None)
-    match = df[df.iloc[:, 1].str.contains(radicado, case=False, na=False)]
-    return match.iloc[:, [4, 5]].to_dict("records") if not match.empty else []
+
+    if not os.path.isfile(path):
+        print(f"⚠️ File not found: {path}")
+        return []
+
+    try:
+        df = pd.read_excel(path, header=None)
+
+        # Validate expected structure
+        if df.shape[1] < 6:
+            print(f"⚠️ File does not contain enough columns: {path}")
+            return []
+
+        match = df[df.iloc[:, 1].str.contains(radicado, case=False, na=False)]
+        return match.iloc[:, [4, 5]].to_dict("records") if not match.empty else []
+
+    except Exception as e:
+        print(f"❌ Error reading or processing {path}: {e}")
+        return []
 
 
 def get_empty_folders(folder: str) -> list:

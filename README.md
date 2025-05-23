@@ -24,9 +24,23 @@ Ensure you have the following installed:
 - Python 3.12+
 - pip
 - Git
-- Chocolatey (Windows)
+- [Chocolatey](https://chocolatey.org/install)
 - Make
 - (Optional) `make` to simplify setup
+
+## 🛠️ Environment Configuration
+
+Before running the project, you must create a `.env` file based on the
+provided template:
+
+```bash
+cp .env-example .env
+```
+
+This file contains environment variables required by the scripts, such as
+directory paths or configuration settings.
+
+Make sure to adjust the values in `.env` according to your local setup.
 
 ### 🔧 Setup
 
@@ -88,6 +102,13 @@ Pre-commit hooks are configured for:
 - isort
 - end-of-file-fixer
 - trailing-whitespace
+
+## 🧑‍💻 Development Workflow
+
+- Continuous Integration is powered by GitHub Actions. See:
+[`docs/ci_pipeline.md`](docs/ci_pipeline.md)
+- Repository ownership is managed through [`CODEOWNERS`](CODEOWNERS) — see
+[`docs/codeowners_explained.md`](docs/codeowners_explained.md)
 
 ## 🙌 Contributing
 

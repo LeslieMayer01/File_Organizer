@@ -1,8 +1,9 @@
 import os
 import re
-import pandas as pd
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
+
+import pandas as pd
 
 import config
 

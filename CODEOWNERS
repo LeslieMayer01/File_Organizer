@@ -1,0 +1,22 @@
+# Global ownership: Jorge and Leslie own the entire project
+*                         @jorduque16 @LeslieMayer01
+
+# Documentation
+/docs/                    @jorduque16 @LeslieMayer01
+
+# Scripts for electronic index generation
+/src/organizer/step1_clean_empty_folders.py                 @jorduque16 @LeslieMayer01
+/src/organizer/step2_format_folders.py                      @jorduque16 @LeslieMayer01
+/src/organizer/step3_create_internal_folder_structure.py    @jorduque16 @LeslieMayer01
+/src/organizer/step4_subfolder_organization.py              @jorduque16 @LeslieMayer01
+/src/organizer/step5_organizate_files.py                    @jorduque16 @LeslieMayer01
+/src/organizer/step6_create_electronic_index.py             @jorduque16 @LeslieMayer01
+/src/organizer/step7_check_folders.py                       @jorduque16 @LeslieMayer01
+
+# Unit tests
+/tests/                   @jorduque16
+
+# Configuration and project metadata
+Makefile                 @jorduque16
+requirements.txt         @jorduque16 @LeslieMayer01
+.pre-commit-config.yaml  @jorduque16
