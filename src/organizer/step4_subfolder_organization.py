@@ -3,16 +3,16 @@ import shutil
 import pandas as pd
 from datetime import datetime
 
+import config
+
 # Variable de control: True = mover realmente, False = solo simular
 MODO_EJECUCION = True  # Cambia a True para mover los archivos de verdad
 
 
 def run():
-    # Ruta de uso
-    ruta_directorio = r"C:\Users\Usuario\Downloads\Proyectos\J1"
 
     # Ejecutar función
-    mover_estructura_judicial(ruta_directorio, codigo_despacho="05380")
+    mover_estructura_judicial(config.FOLDER_TO_ORGANIZE, "05380")
 
 
 def mover_estructura_judicial(ruta_base, codigo_despacho="05380"):
