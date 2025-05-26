@@ -12,7 +12,8 @@ STEPS = {
     3: "step3_create_internal_folder_structure",
     4: "step4_subfolder_organization",
     5: "step5_organizate_files",
-    6: "step5_create_electronic_index",
+    6: "step6_create_electronic_index",
+    7: "step7_check_folders",
     # Agrega más pasos aquí según tu proyecto
 }
 
