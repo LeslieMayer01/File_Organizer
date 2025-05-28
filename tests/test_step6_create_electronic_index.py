@@ -1,5 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
+import pandas as pd
+
 
 from organizer import step6_create_electronic_index as sei
 
@@ -72,22 +74,22 @@ class TestElectronicIndex(unittest.TestCase):
 
     @patch("pandas.read_excel")
     def test_buscar_radicado_en_base_de_datos_found(self, mock_read_excel):
-        mock_df = MagicMock()
-        mock_df.iloc.__getitem__.return_value.str.contains.return_value = [
-            True,
-        ]
-        mock_df.__getitem__.return_value = mock_df
-        mock_df.empty = False
-        mock_df.iloc[:, [4, 5]].to_dict.return_value = [
-            {"col1": "val1", "col2": "val2"}
-        ]
+        # Crear un DataFrame simulado con columnas mínimas
+        df_mock = pd.DataFrame(
+            [["", "radicado", "", "", "val1", "val2"]],
+        )
 
-        mock_read_excel.return_value = mock_df
+        # Retornar el DataFrame completo en la lectura
+        mock_read_excel.return_value = df_mock
 
+        # Ejecutar función real
         result = sei.buscar_radicado_en_base_de_datos("radicado")
+
+        # Validaciones
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["col1"], "val1")
+        self.assertEqual(result[0][4], "val1")
+        self.assertEqual(result[0][5], "val2")
 
     @patch("pandas.read_excel")
     def test_buscar_radicado_en_base_de_datos_not_found(self, mock_read_excel):
