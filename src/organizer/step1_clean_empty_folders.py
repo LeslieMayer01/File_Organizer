@@ -1,114 +1,120 @@
-from datetime import datetime
-import os
+# step1_clean_empty_folders.py
+
+"""
+Step 1 - Cleanup Script
+
+This script lists and optionally deletes Excel index files and empty folders
+from the specified base path. It logs the results into CSV files for auditing.
+"""
+
 import csv
+import os
+from datetime import datetime
+from typing import List, Tuple
+
+import config
 
 
-def run():
-    print("🧹 Step 1: Cleaning empty folders...")
-    ruta_a_organizar = r"C:\Users\Usuario\Downloads\Proyectos\J1"
-    base_path_reportes = "./reports/"
-
-    # Generación del nombre del archivo CSV con la fecha y hora
-    ruta_csv_salida = obtener_nombre_reporte(
-        base_path_reportes, "listado_indices_excel"
-    )
-    reporte_eliminaciones = obtener_nombre_reporte(
-        base_path_reportes, "reporte_eliminaciones"
-    )
-
-    # Variable de control: Si es True, realiza eliminaciones; si es False,
-    # solo genera el reporte.
-    ejecutar_eliminaciones = (
-        # Cambia esto a False si solo deseas generar el
-        # reporte sin eliminar nada
-        True
-    )
-
-    # Ejecutar las funciones
-    listar_indices_excel(ruta_a_organizar, ruta_csv_salida)
-    eliminar_indices_electronicos_y_carpetas_vacias(
-        ruta_a_organizar, reporte_eliminaciones, ejecutar_eliminaciones
-    )
+def is_excel_file(filename: str) -> bool:
+    """Check if the filename is an Excel file (.xls or .xlsx)."""
+    return filename.lower().endswith((".xls", ".xlsx"))
 
 
-def es_excel(nombre_archivo):
-    """
-    Verifica si el archivo tiene extensión Excel (.xls, .xlsx).
-    """
-    data = [".xls", ".xlsx"]
-    return any(nombre_archivo.lower().endswith(ext) for ext in data)
+def contains_index_keyword(name: str) -> bool:
+    """Check if the filename contains the word 'indice' (case-insensitive)."""
+    return "indice" in name.lower()
 
 
-def contiene_indice(nombre):
-    """
-    Verifica si el nombre del archivo o carpeta contiene 'indice'
-    (sin importar mayúsculas/minúsculas).
-    """
-    return "indice" in nombre.lower()
+def generate_report_filename(base_path: str, prefix: str) -> str:
+    """Generate a timestamped CSV filename."""
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return os.path.join(base_path, f"{prefix}_{timestamp}.csv")
 
 
-def obtener_nombre_reporte(base_path, prefijo):
-    """Genera el nombre del archivo CSV con fecha y hora."""
-    fecha_hora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return os.path.join(base_path, f"{prefijo}_{fecha_hora}.csv")
+def find_index_excel_files(base_path: str) -> List[str]:
+    """Recursively find Excel files that contain 'indice' in the filename."""
+    matches = []
+    for dirpath, _, filenames in os.walk(base_path):
+        for filename in filenames:
+            if is_excel_file(filename) and contains_index_keyword(filename):
+                matches.append(os.path.join(dirpath, filename))
+    return matches
 
 
-def listar_indices_excel(ruta, salida_csv):
-    """
-    Lista archivos Excel que contienen 'indice' en el nombre y
-    los guarda en un CSV.
-    """
-    resultados = []
-    for dirpath, _, filenames in os.walk(ruta):
-        for archivo in filenames:
-            if es_excel(archivo) and contiene_indice(archivo):
-                ruta_completa = os.path.join(dirpath, archivo)
-                resultados.append([ruta_completa])
-
-    with open(salida_csv, mode="w", newline="", encoding="utf-8") as f:
+def write_csv(
+    file_path: str,
+    header: List[str],
+    rows: List[List[str]],
+) -> None:
+    """Write data to a CSV file."""
+    with open(
+        file_path,
+        mode="w",
+        newline="",
+        encoding="utf-8",
+    ) as f:
         writer = csv.writer(f)
-        writer.writerow(["Ruta del archivo"])
-        writer.writerows(resultados)
-
-    print(f"Se guardaron {len(resultados)} archivos en {salida_csv}")
+        writer.writerow(header)
+        writer.writerows(rows)
 
 
-def eliminar_indices_electronicos_y_carpetas_vacias(
-    ruta, reporte_csv, ejecutar_eliminaciones=False
-):  # CAMBIAR A TRUE PARA EJECUTAR ELIMINACIÓN
+def delete_items(
+    base_path: str,
+    dry_run: bool = True,
+) -> List[Tuple[str, str]]:
     """
-    Elimina archivos Excel con 'indice' en el nombre y carpetas vacías
-    en la ruta, o solo genera el reporte si no se ejecutan las eliminaciones.
+    Delete Excel files with 'indice' in the name and empty directories.
+    Returns a list of deletions (type, path).
     """
-    eliminados = []
+    deleted_items = []
 
-    for dirpath, _, filenames in os.walk(ruta, topdown=False):
-        # Eliminar archivos Excel con 'indice' en el nombre
-        for archivo in filenames:
-            if es_excel(archivo) and contiene_indice(archivo):
-                ruta_archivo = os.path.join(dirpath, archivo)
-                if ejecutar_eliminaciones:
+    for dirpath, _, filenames in os.walk(base_path, topdown=False):
+        for filename in filenames:
+            if is_excel_file(filename) and contains_index_keyword(filename):
+                file_path = os.path.join(dirpath, filename)
+                if not dry_run:
                     try:
-                        os.remove(ruta_archivo)
-                        print(f"Archivo Excel eliminado: {ruta_archivo}")
+                        os.remove(file_path)
+                        print(f"✅ Deleted file: {file_path}")
                     except Exception as e:
-                        print(f"No se pudo eliminar {ruta_archivo}: {e}")
-                eliminados.append(["Archivo", ruta_archivo])
+                        print(f"❌ Failed to delete file {file_path}: {e}")
+                deleted_items.append(("File", file_path))
 
-        # Eliminar carpetas vacías
-        if not os.listdir(dirpath):  # Si está vacía tras eliminar archivos
-            if ejecutar_eliminaciones:
+        if not os.listdir(dirpath):
+            if not dry_run:
                 try:
                     os.rmdir(dirpath)
-                    print(f"Carpeta vacía eliminada: {dirpath}")
+                    print(f"✅ Deleted empty folder: {dirpath}")
                 except Exception as e:
-                    print(f"No se pudo eliminar carpeta {dirpath}: {e}")
-            eliminados.append(["Carpeta", dirpath])
+                    print(f"❌ Failed to delete folder {dirpath}: {e}")
+            deleted_items.append(("Folder", dirpath))
 
-    # Guardar el reporte de eliminaciones en un archivo CSV
-    with open(reporte_csv, mode="w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Tipo de Eliminación", "Ruta"])
-        writer.writerows(eliminados)
+    return deleted_items
 
-    print(f"Reporte de eliminaciones guardado en {reporte_csv}")
+
+def run() -> None:
+    """Execute the cleanup process and save reports."""
+    print("🧹 Step 1: Cleaning empty folders and index files...")
+
+    perform_deletions = True
+
+    index_report_path = generate_report_filename(
+        config.REPORTS_DIR, "step1_index_files"
+    )
+    deletion_report_path = generate_report_filename(
+        config.REPORTS_DIR, "step1_deleted_items"
+    )
+
+    index_files = find_index_excel_files(config.FOLDER_TO_ORGANIZE)
+    write_csv(index_report_path, ["File Path"], [[f] for f in index_files])
+    print(f"ℹ️ Saved {len(index_files)} index files to {index_report_path}")
+
+    deleted_items = delete_items(
+        config.FOLDER_TO_ORGANIZE, dry_run=not perform_deletions
+    )
+    write_csv(
+        deletion_report_path,
+        ["Type", "Path"],
+        [[t, p] for t, p in deleted_items],
+    )
+    print(f"📊 Deletion report saved to {deletion_report_path}")

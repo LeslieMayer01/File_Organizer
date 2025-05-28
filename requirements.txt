@@ -33,7 +33,7 @@ pre_commit==4.2.0
 prov==2.0.1
 puremagic==1.28
 pydot==3.0.2
-PyMuPDF==1.24.13
+PyMuPDF==1.23.7
 pyparsing==3.2.0
 PyPDF2==3.0.1
 python-dateutil==2.9.0.post0
@@ -51,3 +51,10 @@ typing_extensions==4.12.2
 tzdata==2024.2
 urllib3==2.2.3
 virtualenv==20.31.2
+pytest
+pytest-mock
+mock; python_version < '3.3'
+pytest-cov
+black
+isort
+dotenv
