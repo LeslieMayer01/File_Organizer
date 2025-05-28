@@ -9,10 +9,19 @@ import config
 
 
 def run():
+    print("✏️ Step 5: Organize folders...")
+    print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_5}")
+
+    confirm = input("❓ Do you want to continue? [y/N]: ")
+    if confirm.strip().lower() != "y":
+        print("🚫 Operation cancelled by user.")
+        return
+
     # Ejecutar
     procesar_directorio(
         config.FOLDER_TO_ORGANIZE,
-        simular=True,  # Cambia a False para aplicar cambios reales
+        simular=config.SIMULATE_STEP_5,
     )
 
 

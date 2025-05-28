@@ -6,16 +6,22 @@ import pandas as pd
 
 import config
 
-# Variable de control: True = mover realmente, False = solo simular
-MODO_EJECUCION = True  # Cambia a True para mover los archivos de verdad
-
 
 def run():
+    print("✏️ Step 5: Sub-folders Organization...")
+    print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_6}")
+
+    confirm = input("❓ Do you want to continue? [y/N]: ")
+    if confirm.strip().lower() != "y":
+        print("🚫 Operation cancelled by user.")
+        return
+
     # Ejecutar función
-    mover_estructura_judicial(config.FOLDER_TO_ORGANIZE, "05380")
+    mover_estructura_judicial(config.FOLDER_TO_ORGANIZE, config.JUDGEMENT_ID)
 
 
-def mover_estructura_judicial(ruta_base, codigo_despacho="05380"):
+def mover_estructura_judicial(ruta_base, codigo_despacho):
     datos_cambios = []
 
     # Iterar recursivamente por todas las carpetas
@@ -39,7 +45,7 @@ def mover_estructura_judicial(ruta_base, codigo_despacho="05380"):
                         if os.path.isdir(item_path) and item.startswith("C0"):
                             path = os.path.join(ruta_primera_instancia, item)
                             try:
-                                if MODO_EJECUCION:
+                                if not config.SIMULATE_STEP_6:
                                     shutil.move(item_path, path)
                                     estado = "MOVIDO"
                                 else:
@@ -64,7 +70,7 @@ def mover_estructura_judicial(ruta_base, codigo_despacho="05380"):
                         if os.path.isfile(item_path):
                             path = os.path.join(ruta_c01_principal, item)
                             try:
-                                if MODO_EJECUCION:
+                                if not config.SIMULATE_STEP_6:
                                     shutil.move(item_path, path)
                                     estado = "MOVIDO"
                                 else:
@@ -88,7 +94,7 @@ def mover_estructura_judicial(ruta_base, codigo_despacho="05380"):
     )
 
     # Nombre del archivo según si es simulación o ejecución real
-    if MODO_EJECUCION:
+    if not config.SIMULATE_STEP_6:
         nombre_reporte = "Movimientos_Reales.xlsx"
     else:
         nombre_reporte = "Simulacion_Organizacion.xlsx"

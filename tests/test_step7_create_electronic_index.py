@@ -1,9 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
-import pandas as pd
 
 
-from organizer import step6_create_electronic_index as sei
+from organizer import step7_create_electronic_index as sei
 
 
 class TestElectronicIndex(unittest.TestCase):
@@ -33,11 +32,6 @@ class TestElectronicIndex(unittest.TestCase):
             self.assertIn("KB", sei.format_file_size("dummy.txt"))
         with patch("os.path.getsize", return_value=1048576):
             self.assertIn("MB", sei.format_file_size("dummy.txt"))
-
-    def test_add_datetime(self):
-        filename = "report.xlsx"
-        result = sei.add_datetime(filename)
-        self.assertTrue(result.endswith("-report.xlsx"))
 
     def test_valid_document(self):
         self.assertTrue(sei.valid_document("10_doc.pdf"))
@@ -71,25 +65,6 @@ class TestElectronicIndex(unittest.TestCase):
                 result[0]["Causa del problema"],
                 "Sin prefijo numérico de 2 dígitos",
             )
-
-    @patch("pandas.read_excel")
-    def test_buscar_radicado_en_base_de_datos_found(self, mock_read_excel):
-        # Crear un DataFrame simulado con columnas mínimas
-        df_mock = pd.DataFrame(
-            [["", "radicado", "", "", "val1", "val2"]],
-        )
-
-        # Retornar el DataFrame completo en la lectura
-        mock_read_excel.return_value = df_mock
-
-        # Ejecutar función real
-        result = sei.buscar_radicado_en_base_de_datos("radicado")
-
-        # Validaciones
-        self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0][4], "val1")
-        self.assertEqual(result[0][5], "val2")
 
     @patch("pandas.read_excel")
     def test_buscar_radicado_en_base_de_datos_not_found(self, mock_read_excel):

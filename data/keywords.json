@@ -1,0 +1,65 @@
+{
+  "C01Principal": [
+    "principal",
+    "Principal",
+    "ppal",
+    "PPAL",
+    "Ppal",
+    "PRINCIPAL",
+    "CuadernoUnico",
+    "Cuaderno 1 Principal",
+    "01 Unica Instancia"
+  ],
+  "C05MedidasCautelares": [
+    "medida",
+    "Medida",
+    "MEDIDA",
+    "M.C",
+    "M. Cautelar",
+    "Media Cautelar",
+    "MS",
+    "Medias Cautelares",
+    "MEDIDA CAUTELAR",
+    "Cuaderno 2 Medidas Cautelares"
+  ],
+  "C03AcumulacionProcesos": [
+    "acumulacion",
+    "ACUMULACION",
+    "Acumulacion"
+  ],
+  "C04DepositosJudiciales": [
+    "deposito",
+    "titulo",
+    "TITULO",
+    "Deposito",
+    "DEPOSITOS",
+    "Titulo",
+    "DJ04"
+  ],
+  "C02Incidentes": [
+    "indidente",
+    "incidentes",
+    "INCIDENTE",
+    " Incidente",
+    "Incidentes",
+    "INCIDENTES"
+  ],
+  "C06Apelacion": [
+    "Apelacion",
+    "apelacion",
+    "segunda instancia",
+    " Segunda Instancia"
+  ],
+  "C08Recurso": [
+    "tutela",
+    "Tutela",
+    "Recurso",
+    " Extraordinario"
+  ],
+  "C10EjecucionSentencia": [
+    "tramiteposterior",
+    "Traite Posterior",
+    "Ejecucion",
+    " ejecucion"
+  ]
+}

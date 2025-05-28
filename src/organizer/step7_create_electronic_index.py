@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
@@ -10,31 +11,33 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Border, Side
 
 import config
+from utils.reports import write_report
 
 
 def run() -> None:
-    print("📄 Step 5: Create Electronic Index...")
+    print("📄 Step 7: Create Electronic Index...")
+    print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_7}")
+
+    if not os.path.isfile(config.DATABASE_FILE):
+        print(f"⚠️ Database Not Found: {config.DATABASE_FILE}")
+
+    confirm = input("❓ Do you want to continue? [y/N]: ")
+    if confirm.strip().lower() != "y":
+        print("🚫 Operation cancelled by user.")
+        return
 
     results: Dict[str, List] | None = scan_folder(config.FOLDER_TO_ORGANIZE)
 
     if results:
-        report_path = add_datetime(
-            os.path.join(config.REPORTS_DIR, "step11_Create_Index_File.xlsx")
+        write_report(
+            step_folder="step_7",
+            filename_prefix="conflicts_and_omitted",
+            header=["Archivo Inválido", "Causa del problema", "Ruta"],
+            rows=results["invalid"] + results["omitted"],
         )
-        df = pd.DataFrame(
-            results["invalid"] + results["omitted"],
-            columns=["Archivo Inválido", "Causa del problema", "Ruta"],
-        )
-        df.to_excel(report_path, index=False)
-        print(f"📁 Archivo de errores generado: {report_path}")
     else:
         print("✅ Todos los archivos fueron procesados correctamente.")
-
-
-def add_datetime(file_path: str) -> str:
-    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M")
-    name, ext = os.path.splitext(file_path)
-    return f"{timestamp}-{os.path.basename(name)}{ext}"
 
 
 def scan_folder(root_folder: str) -> Optional[dict[str, list[Any]]]:
@@ -106,7 +109,8 @@ def process_sub_folders(base_folder: str) -> dict:
 
 
 def get_radicado_number(folder_path: str) -> str:
-    return os.path.basename(os.path.dirname(folder_path))[:23]
+    match = re.search(r"05380\d{18}", folder_path)
+    return match.group(0) if match else ""
 
 
 def validate_if_file_exists(folder_path: str, index_number: str) -> bool:
@@ -256,11 +260,11 @@ def buscar_radicado_en_base_de_datos(radicado: str) -> list[dict]:
     5 (Defendant),or an empty list if the file doesn't exist or no match
      is found.
     """
+
     base_file = "BaseDatosRadicados.xlsx"
     path = os.path.join(config.DATA_DIR, base_file)
 
     if not os.path.isfile(path):
-        print(f"⚠️ File not found: {path}")
         return []
 
     try:
