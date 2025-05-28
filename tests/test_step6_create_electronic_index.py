@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 from organizer import step6_create_electronic_index as sei
 
@@ -46,7 +46,10 @@ class TestElectronicIndex(unittest.TestCase):
     def test_filter_target_folders(self):
         dirs = ["01PrimeraInstancia", "temp", "02SegundaInstancia"]
         filtered = sei.filter_target_folders(dirs)
-        self.assertEqual(filtered, ["01PrimeraInstancia", "02SegundaInstancia"])
+        self.assertEqual(
+            filtered,
+            ["01PrimeraInstancia", "02SegundaInstancia"],
+        )
 
     def test_get_file_info_pdf(self):
         mock_path = "document.pdf"
@@ -63,13 +66,16 @@ class TestElectronicIndex(unittest.TestCase):
         with patch("os.listdir", return_value=["doc.pdf"]):
             result = sei.validate_files_with_numeric_prefix("dummy")
             self.assertEqual(
-                result[0]["Causa del problema"], "Sin prefijo numérico de 2 dígitos"
+                result[0]["Causa del problema"],
+                "Sin prefijo numérico de 2 dígitos",
             )
 
     @patch("pandas.read_excel")
     def test_buscar_radicado_en_base_de_datos_found(self, mock_read_excel):
         mock_df = MagicMock()
-        mock_df.iloc.__getitem__.return_value.str.contains.return_value = [True]
+        mock_df.iloc.__getitem__.return_value.str.contains.return_value = [
+            True,
+        ]
         mock_df.__getitem__.return_value = mock_df
         mock_df.empty = False
         mock_df.iloc[:, [4, 5]].to_dict.return_value = [

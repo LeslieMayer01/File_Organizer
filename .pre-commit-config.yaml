@@ -4,11 +4,11 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      - id: trailing-whitespace       # Elimina espacios al final de líneas
-      - id: end-of-file-fixer         # Asegura que haya una línea en blanco al final
-      - id: check-added-large-files   # Evita subir archivos grandes por accidente
-      - id: check-yaml                # Valida archivos YAML si usas alguno
-      - id: debug-statements          # Avisa si hay `print` o `pdb` olvidados
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: debug-statements
 
   - repo: https://github.com/psf/black
     rev: 24.3.0

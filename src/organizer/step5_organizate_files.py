@@ -35,23 +35,29 @@ def procesar_directorio(base_dir, simular=True):
     registros = []
 
     for root, _, files in os.walk(base_dir):
-        archivos = [f for f in files if not f.lower().startswith("xcontrol")]
-        if not archivos:
+        files = [f for f in files if not f.lower().startswith("xcontrol")]
+        if not files:
             continue
 
-        todos_tienen_numeros = all(re.match(r"^\d+", f) for f in archivos)
+        todos_tienen_numeros = all(re.match(r"^\d+", f) for f in files)
 
         if todos_tienen_numeros:
-            if len(archivos) > 100:
-                archivos.sort(key=lambda x: x[:3], reverse=True)
+            if len(files) > 100:
+                files.sort(
+                    key=lambda x: x[:3],
+                    reverse=True,
+                )
             else:
-                archivos.sort(key=lambda x: x[:2], reverse=True)
+                files.sort(
+                    key=lambda x: x[:2],
+                    reverse=True,
+                )
         else:
-            archivos.sort(key=lambda x: os.path.getmtime(os.path.join(root, x)))
+            files.sort(key=lambda x: os.path.getmtime(os.path.join(root, x)))
 
         nombres_usados = defaultdict(int)
 
-        for i, nombre_original in enumerate(archivos, 1):
+        for i, nombre_original in enumerate(files, 1):
             ruta_original = os.path.join(root, nombre_original)
             nombre_base, ext = os.path.splitext(nombre_original)
 

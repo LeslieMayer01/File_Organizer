@@ -15,7 +15,7 @@ import config
 def run() -> None:
     print("📄 Step 5: Create Electronic Index...")
 
-    results: Dict[str, List[Any]] = scan_folder(config.FOLDER_TO_ORGANIZE)
+    results: Dict[str, List] | None = scan_folder(config.FOLDER_TO_ORGANIZE)
 
     if results:
         report_path = add_datetime(
@@ -38,7 +38,11 @@ def add_datetime(file_path: str) -> str:
 
 
 def scan_folder(root_folder: str) -> Optional[dict[str, list[Any]]]:
-    results = {"valid": [], "invalid": [], "omitted": []}
+    results: Dict[str, List[Any]] = {
+        "valid": [],
+        "invalid": [],
+        "omitted": [],
+    }
 
     for current_root, sub_dirs, _ in os.walk(root_folder):
         for folder_name in filter_target_folders(sub_dirs):
@@ -181,9 +185,10 @@ def valid_document(file: str) -> bool:
 
 def get_file_info(file_path: str) -> dict:
     file_name = os.path.basename(file_path)
-    creation_date = datetime.fromtimestamp(os.path.getctime(file_path)).strftime(
-        "%m/%d/%Y"
-    )
+    creation_date = datetime.fromtimestamp(
+        os.path.getctime(file_path),
+    ).strftime("%m/%d/%Y")
+
     size = format_file_size(file_path)
     ext = file_name.split(".")[-1].upper()
     pages: Union[int, str] = 1
@@ -244,10 +249,12 @@ def apply_border_to_row(ws, row):
 
 def buscar_radicado_en_base_de_datos(radicado: str) -> list[dict]:
     """
-    Searches for a case record in the Excel file based on the 'radicado' string.
+    Searches for a case record in the Excel file based on the 'radicado'
+    string.
 
-    Returns a list of dictionaries with column 4 (Plaintiff) and column 5 (Defendant),
-    or an empty list if the file doesn't exist or no match is found.
+    Returns a list of dictionaries with column 4 (Plaintiff) and column
+    5 (Defendant),or an empty list if the file doesn't exist or no match
+     is found.
     """
     base_file = "BaseDatosRadicados.xlsx"
     path = os.path.join(config.DATA_DIR, base_file)
@@ -265,7 +272,9 @@ def buscar_radicado_en_base_de_datos(radicado: str) -> list[dict]:
             return []
 
         match = df[df.iloc[:, 1].str.contains(radicado, case=False, na=False)]
-        return match.iloc[:, [4, 5]].to_dict("records") if not match.empty else []
+        if not match.empty:
+            return match.iloc[:, [4, 5]].to_dict("records")
+        return []
 
     except Exception as e:
         print(f"❌ Error reading or processing {path}: {e}")
@@ -348,11 +357,12 @@ def validate_word_docs_in_folder(folder: str) -> Optional[List[dict]]:
     return None
 
 
-def validate_files_with_numeric_prefix(folder: str) -> Optional[List[dict]]:
+def validate_files_with_numeric_prefix(
+    folder: str,
+) -> Optional[List[dict]]:
     for f in os.listdir(folder):
-        if not (f[:2].isdigit() and len(f[:2]) == 2) and not f.lower().startswith(
-            "zcontrol"
-        ):
+        tiene_prefijo = f[:2].isdigit() and len(f[:2]) == 2
+        if not tiene_prefijo and not f.lower().startswith("zcontrol"):
             return [
                 {
                     "Archivo Inválido": f,

@@ -41,15 +41,27 @@ def find_index_excel_files(base_path: str) -> List[str]:
     return matches
 
 
-def write_csv(file_path: str, header: List[str], rows: List[List[str]]) -> None:
+def write_csv(
+    file_path: str,
+    header: List[str],
+    rows: List[List[str]],
+) -> None:
     """Write data to a CSV file."""
-    with open(file_path, mode="w", newline="", encoding="utf-8") as f:
+    with open(
+        file_path,
+        mode="w",
+        newline="",
+        encoding="utf-8",
+    ) as f:
         writer = csv.writer(f)
         writer.writerow(header)
         writer.writerows(rows)
 
 
-def delete_items(base_path: str, dry_run: bool = True) -> List[Tuple[str, str]]:
+def delete_items(
+    base_path: str,
+    dry_run: bool = True,
+) -> List[Tuple[str, str]]:
     """
     Delete Excel files with 'indice' in the name and empty directories.
     Returns a list of deletions (type, path).
@@ -101,6 +113,8 @@ def run() -> None:
         config.FOLDER_TO_ORGANIZE, dry_run=not perform_deletions
     )
     write_csv(
-        deletion_report_path, ["Type", "Path"], [[t, p] for t, p in deleted_items]
+        deletion_report_path,
+        ["Type", "Path"],
+        [[t, p] for t, p in deleted_items],
     )
     print(f"📊 Deletion report saved to {deletion_report_path}")
