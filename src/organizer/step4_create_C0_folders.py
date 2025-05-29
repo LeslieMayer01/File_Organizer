@@ -30,7 +30,7 @@ def load_keyword_mapping(json_path: str) -> dict:
 
 def is_target_folder(folder_name: str) -> bool:
     """Check if a folder name starts with the judgment ID."""
-    return folder_name.startswith(config.JUDGEMENT_ID)
+    return folder_name.startswith(config.JUDGEMENT_ID[:5])
 
 
 def is_file(path: str) -> bool:
@@ -61,12 +61,19 @@ def move_all_files(
 
     for file_name in os.listdir(source_folder):
         source_path = os.path.join(source_folder, file_name)
-        dest_path = os.path.join(destination_folder, file_name)
 
-        if is_file(source_path):
-            moved.append([source_path, dest_path])
-            if not simulate:
+        # Avoid moving the folders just created (scenario 1 case)
+        if os.path.isdir(source_path):
+            continue
+
+        dest_path = os.path.join(destination_folder, file_name)
+        moved.append([source_path, dest_path])
+
+        if not simulate:
+            try:
                 os.rename(source_path, dest_path)
+            except Exception as e:
+                print(f"❌ Failed to move {source_path}: {e}")
 
     return moved
 
@@ -74,22 +81,57 @@ def move_all_files(
 def rename_subfolders(
     base_path: str, subfolder_names: List[str], mapping: dict, simulate: bool
 ) -> Tuple[List[List[str]], List[List[str]]]:
-    """Rename subfolders using mapping. Returns (renamed, skipped)."""
-    renamed = []
-    skipped = []
+    """Rename subfolders using a keyword mapping with conflict prevention.
+
+    If multiple folders map to the same destination name, none will be renamed.
+
+    Args:
+        base_path (str): Parent folder path.
+        subfolder_names (List[str]): List of current subfolder names.
+        mapping (dict): Keyword mapping to standardized folder names.
+        simulate (bool): If True, do not apply changes.
+
+    Returns:
+        Tuple:
+            - List of successfully renamed folders.
+            - List of skipped folders due to unknown match or conflict.
+    """
+    rename_plan: List[Tuple[str, str]] = []
+    skipped: List[List[str]] = []
+
+    seen_targets = set()
+    collision_detected = False
 
     for sub in subfolder_names:
-        original_path = os.path.join(base_path, sub)
+        src_path = os.path.join(base_path, sub)
         standard = get_matching_key(sub, mapping)
 
-        if standard:
-            target_path = os.path.join(base_path, standard)
-            if original_path != target_path:
-                renamed.append([original_path, target_path])
-                if not simulate:
-                    os.rename(original_path, target_path)
+        if not standard:
+            skipped.append([src_path])
+            continue
+
+        dst_path = os.path.join(base_path, standard)
+
+        if dst_path in seen_targets:
+            collision_detected = True
+            skipped.append([src_path])
         else:
-            skipped.append([original_path])
+            seen_targets.add(dst_path)
+            rename_plan.append((src_path, dst_path))
+
+    if collision_detected:
+        print("⚠️ Conflict detected: skipping all renames in this folder.")
+        return [], skipped + [[src for src, _ in rename_plan]]
+
+    renamed: List[List[str]] = []
+    for src, dst in rename_plan:
+        renamed.append([src, dst])
+        if not simulate:
+            try:
+                os.rename(src, dst)
+            except Exception as e:
+                print(f"❌ Failed to rename {src} → {dst}: {e}")
+                skipped.append([src])
 
     return renamed, skipped
 
@@ -98,6 +140,7 @@ def handle_folder(
     folder_path: str, mapping: dict, simulate: bool
 ) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
     """Process one folder and restructure contents."""
+    # ⚠️ Evalúa estado ANTES de crear nuevas carpetas
     items = os.listdir(folder_path)
     file_paths = [f for f in items if is_file(os.path.join(folder_path, f))]
     folder_names = [
@@ -112,21 +155,23 @@ def handle_folder(
     renamed_folders: List[List[str]] = []
     orphaned_files: List[List[str]] = []
 
-    if not folder_names:
-        # Scenario 1 - Only files
+    is_solo_files = len(folder_names) == 0
+
+    if is_solo_files:
+        # ✅ Escenario 1: solo archivos — crear destino y mover
         target_path = os.path.join(
             folder_path,
             "01PrimeraInstancia",
             "C01Principal",
         )
+
         moved_files = move_all_files(
             folder_path,
             target_path,
             simulate=simulate,
         )
-
     else:
-        # Scenario 2 - Subfolders and maybe files
+        # ✅ Escenario 2: carpetas y posiblemente archivos
         renamed_folders, _ = rename_subfolders(
             folder_path, folder_names, mapping, simulate
         )
@@ -138,13 +183,14 @@ def handle_folder(
     return moved_files, renamed_folders, orphaned_files
 
 
-def find_judgment_folders(base_path: str) -> List[str]:
-    """Find all folders starting with config.JUDGEMENT_ID."""
-    return [
-        os.path.join(base_path, f)
-        for f in os.listdir(base_path)
-        if is_target_folder(f) and os.path.isdir(os.path.join(base_path, f))
-    ]
+def find_judgment_folders_recursive(base_path: str) -> List[str]:
+    """Find all folders recursively starting with the first 5 digits of ID."""
+    folders = []
+    for root, dirs, _ in os.walk(base_path):
+        for d in dirs:
+            if is_target_folder(d):
+                folders.append(os.path.join(root, d))
+    return folders
 
 
 def run() -> None:
@@ -158,8 +204,7 @@ def run() -> None:
         return
 
     mapping = load_keyword_mapping(config.KEYWORDS_JSON)
-    target_folders = find_judgment_folders(config.FOLDER_TO_ORGANIZE)
-
+    target_folders = find_judgment_folders_recursive(config.FOLDER_TO_ORGANIZE)
     all_moved = []
     all_renamed = []
     all_orphans = []

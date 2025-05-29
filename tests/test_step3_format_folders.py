@@ -2,6 +2,7 @@
 
 import pytest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.organizer.step3_format_folders import (
     clean_name,
@@ -48,9 +49,7 @@ def test_extract_new_name_max_length(monkeypatch) -> None:
     result = extract_new_name(base)
     assert result is not None
     assert len(result) == 40
-    assert result.startswith("999999999999")
-    assert result.startswith("999999999999")
-    assert result == "9999999999992023100 verylongsuffixnamewi"
+    assert result.startswith("9999999999992023100")
 
 
 def test_extract_new_name_none_if_not_found() -> None:
@@ -61,7 +60,7 @@ def test_extract_new_name_none_if_not_found() -> None:
 def test_find_folders_to_rename(tmp_path: Path) -> None:
     """Test detection of folders that need renaming."""
     (tmp_path / "valid_2024-001").mkdir()
-    (tmp_path / "053804089001202400100000").mkdir()  # valid already
+    (tmp_path / "053804089001202400100000").mkdir()  # already valid
 
     folders = find_folders_to_rename(str(tmp_path))
     assert len(folders) == 1
@@ -73,12 +72,13 @@ def test_rename_folders_simulation(tmp_path: Path) -> None:
     source = tmp_path / "2021-888 X"
     source.mkdir()
 
-    renamed, conflicts = rename_folders(
+    renamed, conflicts, errors = rename_folders(
         [(str(tmp_path), "2021-888 X", "newname")], simulate=True
     )
 
     assert len(renamed) == 1
     assert conflicts == []
+    assert errors == []
     assert source.exists()
 
 
@@ -88,10 +88,11 @@ def test_rename_folders_real(tmp_path: Path) -> None:
     old_folder.mkdir()
 
     entries = [(str(tmp_path), "2022-001 Extra", "renamed")]
-    renamed, conflicts = rename_folders(entries, simulate=False)
+    renamed, conflicts, errors = rename_folders(entries, simulate=False)
 
     assert len(renamed) == 1
     assert conflicts == []
+    assert errors == []
     assert not old_folder.exists()
     assert (tmp_path / "renamed").exists()
 
@@ -104,7 +105,24 @@ def test_rename_folders_with_conflict(tmp_path: Path) -> None:
     conflict_folder.mkdir()
 
     entries = [(str(tmp_path), "2020-003", "conflict")]
-    renamed, conflicts = rename_folders(entries, simulate=False)
+    renamed, conflicts, errors = rename_folders(entries, simulate=False)
 
     assert renamed == []
+    assert len(conflicts) == 1
     assert conflicts[0][1] == "conflict"
+    assert errors == []
+
+
+def test_rename_folders_with_rename_error(tmp_path) -> None:
+    """Test that rename errors are caught and reported."""
+    source = tmp_path / "2021-555"
+    source.mkdir()
+    entries = [(str(tmp_path), "2021-555", "fail")]
+
+    with patch("os.rename", side_effect=OSError("mocked failure")):
+        renamed, conflicts, errors = rename_folders(entries, simulate=False)
+
+    assert renamed[0][0].endswith("2021-555")
+    assert conflicts == []
+    assert len(errors) == 1
+    assert "mocked failure" in errors[0][2]

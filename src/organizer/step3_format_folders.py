@@ -74,18 +74,18 @@ def find_folders_to_rename(base_path: str) -> List[tuple[str, str, str]]:
 
 def rename_folders(
     entries: List[tuple[str, str, str]], simulate: bool
-) -> tuple[List[List[str]], List[List[str]]]:
+) -> tuple[List[List[str]], List[List[str]], List[List[str]]]:
     """Rename or simulate renaming of folders.
 
-    Args:
-        entries (List[tuple]): (dirpath, old_name, new_name).
-        simulate (bool): If True, no actual renaming is performed.
-
     Returns:
-        Tuple of renamed and conflicted entries.
+        Tuple of:
+        - renamed: successful renames
+        - conflicts: target path already exists
+        - errors: unexpected errors during rename
     """
     renamed = []
     conflicts = []
+    errors = []
 
     for dirpath, old_name, new_name in entries:
         old_path = os.path.join(dirpath, old_name)
@@ -100,10 +100,14 @@ def rename_folders(
         if simulate:
             print(f"ℹ️ (Simulated) Rename: {old_name} -> {new_name}")
         else:
-            os.rename(old_path, new_path)
-            print(f"✅ Renamed: {old_name} -> {new_name}")
+            try:
+                os.rename(old_path, new_path)
+                print(f"✅ Renamed: {old_name} -> {new_name}")
+            except Exception as e:
+                print(f"❌ Failed to rename {old_path} -> {new_name}: {e}")
+                errors.append([old_path, new_name, str(e)])
 
-    return renamed, conflicts
+    return renamed, conflicts, errors
 
 
 def run() -> None:
@@ -118,10 +122,14 @@ def run() -> None:
         return
 
     entries = find_folders_to_rename(config.FOLDER_TO_ORGANIZE)
-    renamed, conflicts = rename_folders(
-        entries,
-        simulate=config.SIMULATE_STEP_3,
-    )
+    try:
+        renamed, conflicts, errors = rename_folders(
+            entries,
+            simulate=config.SIMULATE_STEP_3,
+        )
+    except Exception as e:
+        print(f"❌ Error while executing step 3: {e}")
+        renamed, conflicts, errors = [], [], [["general", "run()", str(e)]]
 
     write_report(
         step_folder="step_3",
@@ -136,3 +144,11 @@ def run() -> None:
         header=["Path", "Conflicting Name"],
         rows=conflicts,
     )
+
+    if errors:
+        write_report(
+            step_folder="step_3",
+            filename_prefix="rename_errors",
+            header=["Path", "Target Name", "Error"],
+            rows=errors,
+        )

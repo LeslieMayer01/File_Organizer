@@ -1,4 +1,4 @@
-"""Tests for step4_create_internal_folder_structure.py."""
+"""Tests for step4_create_C0_folders.py."""
 
 import json
 import pytest
@@ -17,79 +17,106 @@ from src.organizer.step4_create_C0_folders import (
 
 @pytest.fixture
 def keyword_mapping(tmp_path: Path) -> Path:
-    """Create and return a temporary mapping JSON."""
+    """Create a temporary keyword mapping file."""
     mapping = {
         "C01Principal": ["ppal", "principal"],
         "C05MedidasCautelares": ["medida", "cautelar"],
     }
     path = tmp_path / "mapping.json"
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(mapping, f)
+    path.write_text(json.dumps(mapping), encoding="utf-8")
     return path
 
 
-def test_normalize_string_cleans_text() -> None:
-    """Test normalization of string with symbols and accents."""
+def test_normalize_string() -> None:
+    """Normalize string with symbols and accents."""
     assert normalize_string("Ppal !@#") == "ppal"
     assert normalize_string("  MÉDIDA ") == "mdida"
 
 
 def test_is_target_folder() -> None:
-    """Test detection of judgment ID folders."""
+    """Validate folders matching judgment prefix."""
     from config import JUDGEMENT_ID
 
-    assert is_target_folder(JUDGEMENT_ID + "001")
+    folder_name = JUDGEMENT_ID[:5] + "_something"
+    assert is_target_folder(folder_name) is True
 
 
 def test_get_matching_key_found(keyword_mapping: Path) -> None:
-    """Test that known folder names are resolved via mapping."""
+    """Get standard folder from a name using the mapping."""
     mapping = load_keyword_mapping(str(keyword_mapping))
     assert get_matching_key("Ppal Cuaderno", mapping) == "C01Principal"
     assert get_matching_key("Medida Extra", mapping) == "C05MedidasCautelares"
 
 
 def test_get_matching_key_not_found(keyword_mapping: Path) -> None:
-    """Test that unknown names return None."""
+    """Return None for unknown folder names."""
     mapping = load_keyword_mapping(str(keyword_mapping))
-    assert get_matching_key("unknown-folder", mapping) is None
+    assert get_matching_key("no-match", mapping) is None
 
 
 def test_move_all_files(tmp_path: Path) -> None:
-    """Test moving files to nested folder."""
-    src = tmp_path / "source"
-    dst = tmp_path / "dest"
+    """Move files from flat folder to new folder."""
+    src = tmp_path / "src"
+    dst = tmp_path / "dst"
     src.mkdir()
+    dst.mkdir()
     (src / "a.txt").write_text("data")
 
     moved = move_all_files(str(src), str(dst), simulate=False)
+    assert len(moved) == 1
     assert (dst / "a.txt").exists()
-    assert moved[0][0].endswith("a.txt")
 
 
 def test_rename_subfolders(tmp_path: Path) -> None:
-    """Test renaming based on keyword mapping."""
-    src = tmp_path / "main"
+    """Rename folders using keyword mapping with no conflicts."""
+    src = tmp_path / "case"
     src.mkdir()
     (src / "ppal").mkdir()
     (src / "medida prueba").mkdir()
 
-    mapping = {"C01Principal": ["ppal"], "C05MedidasCautelares": ["medida"]}
+    mapping = {
+        "C01Principal": ["ppal"],
+        "C05MedidasCautelares": ["medida"],
+    }
 
     renamed, skipped = rename_subfolders(
-        str(src), ["ppal", "medida prueba"], mapping, simulate=False
+        str(src),
+        ["ppal", "medida prueba"],
+        mapping,
+        simulate=False,
     )
 
-    renamed_names = [Path(pair[1]).name for pair in renamed]
+    renamed_names = [Path(new).name for _, new in renamed]
     assert "C01Principal" in renamed_names
     assert "C05MedidasCautelares" in renamed_names
-    assert skipped == []
+    assert not skipped
 
 
-def test_handle_folder_scenario_1(tmp_path: Path) -> None:
-    """Test creation of structure when only files exist."""
+def test_rename_subfolders_conflict(tmp_path: Path) -> None:
+    """Skip renaming if multiple folders target the same name."""
+    folder = tmp_path / "conflict"
+    folder.mkdir()
+    (folder / "ppal").mkdir()
+    (folder / "principal").mkdir()
+
+    mapping = {"C01Principal": ["ppal", "principal"]}
+
+    renamed, skipped = rename_subfolders(
+        str(folder),
+        ["ppal", "principal"],
+        mapping,
+        simulate=False,
+    )
+
+    assert not renamed
+    assert len(skipped) == 2
+
+
+def test_handle_folder_scenario_1_only_files(tmp_path: Path) -> None:
+    """Move files into 01PrimeraInstancia/C01Principal structure."""
     base = tmp_path / "folder"
     base.mkdir()
-    (base / "a.txt").write_text("ok")
+    (base / "file1.txt").write_text("ok")
 
     moved, renamed, orphans = handle_folder(
         str(base),
@@ -97,18 +124,18 @@ def test_handle_folder_scenario_1(tmp_path: Path) -> None:
         simulate=False,
     )
 
-    new_path = base / "01PrimeraInstancia" / "C01Principal" / "a.txt"
-    assert new_path.exists()
+    target = base / "01PrimeraInstancia" / "C01Principal" / "file1.txt"
+    assert target.exists()
     assert len(moved) == 1
-    assert renamed == []
-    assert orphans == []
+    assert not renamed
+    assert not orphans
 
 
-def test_handle_folder_scenario_2(tmp_path: Path) -> None:
-    """Test folder with subfolders and loose files."""
-    base = tmp_path / "case_folder"
+def test_handle_folder_scenario_2_with_orphans(tmp_path: Path) -> None:
+    """Handle folders with subfolders + unclassified files."""
+    base = tmp_path / "case"
     base.mkdir()
-    (base / "file.pdf").write_text("data")
+    (base / "loose.pdf").write_text("info")
     (base / "ppal").mkdir()
 
     mapping = {"C01Principal": ["ppal"]}
@@ -119,6 +146,6 @@ def test_handle_folder_scenario_2(tmp_path: Path) -> None:
         simulate=False,
     )
 
-    assert moved == []
+    assert not moved
     assert renamed[0][1].endswith("C01Principal")
-    assert orphans[0][0].endswith("file.pdf")
+    assert orphans[0][0].endswith("loose.pdf")

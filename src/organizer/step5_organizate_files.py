@@ -1,15 +1,107 @@
+"""Step 5 - Organize and rename files inside C0 folders."""
+
 import os
 import re
 from collections import defaultdict
-from datetime import datetime
-
-import pandas as pd
+from typing import List, Tuple, DefaultDict
 
 import config
+from utils.reports import write_report
 
 
-def run():
-    print("✏️ Step 5: Organize folders...")
+def normalize_filename(name: str) -> str:
+    """Clean file name by removing special characters and limiting length."""
+    name = re.sub(r"^[^a-zA-Z]*", "", name)
+    name = re.sub(r"[^a-zA-Z0-9]", "", name)
+    return name[:36]
+
+
+def build_final_name(
+    index: int,
+    base_name: str,
+    extension: str,
+    counter: int,
+) -> str:
+    """Build the final file name with leading index and optional counter."""
+    clean_name = f"{base_name}{counter:02d}" if counter > 0 else base_name
+    return f"{index:02d}{clean_name}{extension}"
+
+
+def should_process(file: str) -> bool:
+    """Return True if file is eligible for processing."""
+    return not file.lower().startswith("xcontrol")
+
+
+def sort_files(files: List[str], root: str) -> List[str]:
+    """Sort files based on naming or modification date."""
+    all_numeric = all(re.match(r"^\d+", f) for f in files)
+
+    if all_numeric:
+        key_len = 3 if len(files) > 100 else 2
+        return sorted(files, key=lambda x: x[:key_len], reverse=True)
+
+    return sorted(files, key=lambda x: os.path.getmtime(os.path.join(root, x)))
+
+
+def rename_file(
+    index: int, file: str, used: defaultdict, root: str, simulate: bool
+) -> Tuple[List[str], List[str]]:
+    """Attempt to rename a file and return result or error row."""
+    old_path = os.path.join(root, file)
+    base, ext = os.path.splitext(file)
+    clean = normalize_filename(base)
+    count = used[clean]
+    new_name = build_final_name(index, clean, ext, count)
+    new_path = os.path.join(root, new_name)
+    used[clean] += 1
+
+    if simulate:
+        return (
+            [file, new_name, old_path, new_path, "SIMULATED", str(index)],
+            [],
+        )
+
+    try:
+        os.rename(old_path, new_path)
+        return (
+            [file, new_name, old_path, new_path, "RENAMED", str(index)],
+            [],
+        )
+    except Exception as e:
+        return (
+            [],
+            [file, old_path, str(e)],
+        )
+
+
+def process_directory(
+    path: str, simulate: bool
+) -> Tuple[List[List[str]], List[List[str]]]:
+    """Rename and sort files in each subfolder of the given directory."""
+    success_rows = []
+    error_rows = []
+
+    for root, _, files in os.walk(path):
+        valid_files = [f for f in files if should_process(f)]
+        if not valid_files:
+            continue
+
+        sorted_files = sort_files(valid_files, root)
+        used_names: DefaultDict[str, int] = defaultdict(int)
+
+        for i, file in enumerate(sorted_files, 1):
+            renamed, error = rename_file(i, file, used_names, root, simulate)
+            if renamed:
+                success_rows.append(renamed)
+            if error:
+                error_rows.append(error)
+
+    return success_rows, error_rows
+
+
+def run() -> None:
+    """Run Step 5: organize and rename files in C0 folders."""
+    print("✏️ Step 5: Organize files in C0 folders...")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
     print(f"🧪 Simulation mode: {config.SIMULATE_STEP_5}")
 
@@ -18,96 +110,29 @@ def run():
         print("🚫 Operation cancelled by user.")
         return
 
-    # Ejecutar
-    procesar_directorio(
-        config.FOLDER_TO_ORGANIZE,
-        simular=config.SIMULATE_STEP_5,
+    renamed, errors = process_directory(
+        config.FOLDER_TO_ORGANIZE, config.SIMULATE_STEP_5
     )
 
+    if renamed:
+        write_report(
+            step_folder="step_5",
+            filename_prefix="organized_files",
+            header=[
+                "OLD_NAME",
+                "NEW_NAME",
+                "OLD_PATH",
+                "NEW_PATH",
+                "STATUS",
+                "ORDER",
+            ],
+            rows=renamed,
+        )
 
-def limpiar_nombre(nombre):
-    # Eliminar todo lo antes de la primera letra
-    nombre = re.sub(r"^[^a-zA-Z]*", "", nombre)
-    # Eliminar caracteres especiales y espacios
-    nombre = re.sub(r"[^a-zA-Z0-9]", "", nombre)
-    # Limitar a 36 caracteres
-    return nombre[:36]
-
-
-def añadir_fecha_y_hora_al_nombre(nombre):
-    fecha_hora = datetime.now().strftime("%d-%m-%Y_%H-%M")
-    base, ext = os.path.splitext(nombre)
-    return f"{fecha_hora}-{base}.xlsx"
-
-
-def procesar_directorio(base_dir, simular=True):
-    registros = []
-
-    for root, _, files in os.walk(base_dir):
-        files = [f for f in files if not f.lower().startswith("xcontrol")]
-        if not files:
-            continue
-
-        todos_tienen_numeros = all(re.match(r"^\d+", f) for f in files)
-
-        if todos_tienen_numeros:
-            if len(files) > 100:
-                files.sort(
-                    key=lambda x: x[:3],
-                    reverse=True,
-                )
-            else:
-                files.sort(
-                    key=lambda x: x[:2],
-                    reverse=True,
-                )
-        else:
-            files.sort(key=lambda x: os.path.getmtime(os.path.join(root, x)))
-
-        nombres_usados = defaultdict(int)
-
-        for i, nombre_original in enumerate(files, 1):
-            ruta_original = os.path.join(root, nombre_original)
-            nombre_base, ext = os.path.splitext(nombre_original)
-
-            nombre_limpio = limpiar_nombre(nombre_base)
-
-            contador = nombres_usados[nombre_limpio]
-            nuevo_nombre = (
-                f"{nombre_limpio}{contador:02d}" if contador else nombre_limpio
-            )
-            nombres_usados[nombre_limpio] += 1
-
-            # SIN espacio entre número y nombre
-            nombre_final = f"{i:02d}{nuevo_nombre}{ext}"
-            ruta_nueva = os.path.join(root, nombre_final)
-
-            estado = "SIMULADO" if simular else "RENOMBRADO"
-
-            if not simular:
-                os.rename(ruta_original, ruta_nueva)
-
-            registros.append(
-                {
-                    "NOMBRE_ANTERIOR": nombre_original,
-                    "NOMBRE_NUEVO": nombre_final,
-                    "RUTA_ANTERIOR": ruta_original,
-                    "RUTA_NUEVA": ruta_nueva,
-                    "ESTADO": estado,
-                    "ORDEN": i,
-                }
-            )
-
-    if registros:
-        df = pd.DataFrame(registros)
-        df.sort_values(by="ORDEN", inplace=True)
-        os.makedirs("./reports", exist_ok=True)
-        nombre_archivo = añadir_fecha_y_hora_al_nombre("Reporte_Renombrado")
-        ruta_archivo = os.path.join("reports", nombre_archivo)
-
-        with pd.ExcelWriter(ruta_archivo, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="Reporte")
-
-        print(f"✅ Reporte Excel generado: {ruta_archivo}")
-    else:
-        print("⚠️ No se encontraron archivos válidos para procesar.")
+    if errors:
+        write_report(
+            step_folder="step_5",
+            filename_prefix="manual_review_files",
+            header=["FILENAME", "PATH", "ERROR"],
+            rows=errors,
+        )

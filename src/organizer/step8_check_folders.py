@@ -6,7 +6,15 @@ import pandas as pd
 import config
 
 # Prefijos permitidos
-prefijos_permitidos = ("05380", "01Primera", "01Unica", "C0")
+prefijos_permitidos = (
+    "05380",
+    "01Primera",
+    "01Unica",
+    "C0",
+    "02Segunda",
+    "03Recursos",
+    "04Ejecucion",
+)
 
 
 def run():
