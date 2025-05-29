@@ -10,21 +10,28 @@ documentos electrónicos. Para ello, seguiremos los siguientes pasos:
 
 ---
 
-## 0. Eliminar carpetas vacías e índices electrónicos
+## 1. Eliminar carpetas vacías 
+
+**Eliminar** todas las carpetas vacías 
+
+---
+
+## 2. Eliminar carpetas vacías e índices electrónicos
 
 1. **Listar en un archivo CSV** todos los nombres de archivos que cumplan las
 siguientes condiciones:
    - Que sean archivos de Excel.
    - Que contengan la palabra *índice* en el nombre.
 
-2. **Eliminar** todas las carpetas vacías y todos los índices electrónicos
+2. **Eliminar** todos los índices electrónicos
 existentes en la ruta a organizar que
 cumplan que contengan la palabra indice en su nombre ya sea con mayusculas o
 minusculas y sean excel
 
+
 ---
 
-## 1. Organización de carpetas
+## 3. Organización de carpetas
 
 ### a. Renombrar carpeta electrónica del proceso judicial
 
@@ -63,7 +70,7 @@ y la ruta y no cambie el nombre
 9. Generar reporte con los nombres de carpeta que cambio, nombre original,
 nombre nuevo y ruta
 
-## 2. Organización de subcarpetas
+## 4. Organización de subcarpetas
 
 ### a. Estructura por instancia
 
@@ -112,7 +119,7 @@ radicado del despacho**
 'PRINCIPAL', 'CuadernoUnico',
 '01.Expediente Restitutucion 056314089001201800150  ST', '01 Unica Instancia']
     palabras_medidas = ['medida', 'Medida', 'MEDIDA', 'M.C', 'M. Cautelar',
-'Media Cautelar', 'MS', 'Medias Cautelares',
+'Media Cautelar', 'MS', 'Medidas Cautelares',
 'MEDIDA CAUTELAR']
     palabras_acumulacion = ['acumulacion', 'ACUMULACION', 'Acumulacion']
     palabras_titulos = ['deposito', 'titulo', 'TITULO' 'Deposito' 'DEPOSITOS'
@@ -139,7 +146,7 @@ nuevo y ruta.
 
 ---
 
-## 3. Organización de subcarpetas (reubicación)
+## 5. Organización de subcarpetas (reubicación)
 
 Estructura de carpetas hasta ahora:
 
@@ -173,7 +180,7 @@ Resultado:
 
 ---
 
-## 4. Organización de archivos
+## 6. Organización de archivos
 
 1. Recorrer todas las carpetas y subcarpetas recursivamente.
 
@@ -217,7 +224,7 @@ por(Numero/Fechas).
 
 ---
 
-## 5. Elaboración de índice electrónico
+## 7. Elaboración de índice electrónico
 
 El índice electrónico del expediente es el mecanismo para identificar la
 **totalidad de documentos** que componen el expediente judicial electrónico

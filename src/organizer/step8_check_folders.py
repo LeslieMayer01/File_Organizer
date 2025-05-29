@@ -6,10 +6,26 @@ import pandas as pd
 import config
 
 # Prefijos permitidos
-prefijos_permitidos = ("05380", "01Primera", "01Unica", "C0")
+prefijos_permitidos = (
+    "05380",
+    "01Primera",
+    "01Unica",
+    "C0",
+    "02Segunda",
+    "03Recursos",
+    "04Ejecucion",
+)
 
 
 def run():
+    print("✏️ Step 8: Check Folders...")
+    print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_8}")
+
+    confirm = input("❓ Do you want to continue? [y/N]: ")
+    if confirm.strip().lower() != "y":
+        print("🚫 Operation cancelled by user.")
+        return
     # 🔧 Cambia aquí tu ruta base
     listar_carpetas_no_validas(config.FOLDER_TO_ORGANIZE)
 
