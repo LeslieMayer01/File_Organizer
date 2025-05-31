@@ -34,32 +34,39 @@
     "Deposito",
     "DEPOSITOS",
     "Titulo",
-    "DJ04"
+    "DJ04",
+    "Titulos",
+    "Títulos"
   ],
   "C02Incidentes": [
     "indidente",
     "incidentes",
     "INCIDENTE",
-    " Incidente",
+    "Incidente",
     "Incidentes",
-    "INCIDENTES"
+    "INCIDENTES",
+    "Nulidad"
   ],
   "C06Apelacion": [
     "Apelacion",
     "apelacion",
     "segunda instancia",
-    " Segunda Instancia"
+    "Segunda Instancia"
   ],
   "C08Recurso": [
     "tutela",
     "Tutela",
     "Recurso",
-    " Extraordinario"
+    "Extraordinario",
+    "Conflicto",
+    "Sancionatorio",
+    "Vigilancia"
   ],
   "C10EjecucionSentencia": [
     "tramiteposterior",
     "Traite Posterior",
     "Ejecucion",
-    " ejecucion"
+    "ejecucion",
+    "Ejecutivo"
   ]
 }

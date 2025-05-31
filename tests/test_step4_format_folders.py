@@ -1,10 +1,10 @@
-"""Unit tests for step3_format_folders.py."""
+"""Unit tests for step4_format_folders.py."""
 
 import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from src.organizer.step3_format_folders import (
+from src.organizer.step4_format_folders import (
     clean_name,
     extract_new_name,
     find_folders_to_rename,

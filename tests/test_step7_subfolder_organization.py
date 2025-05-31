@@ -1,9 +1,9 @@
-"""Tests for step6_subfolder_organization.py."""
+"""Tests for step7_subfolder_organization.py."""
 
 import json
 import pytest
 from pathlib import Path
-from src.organizer.step6_subfolder_organization import (
+from src.organizer.step7_subfolder_organization import (
     is_target_folder,
     is_c0_structure_only,
     load_folder_mapping,

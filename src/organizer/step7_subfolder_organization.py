@@ -1,4 +1,4 @@
-"""Step 6 - Organize C0 folders into their logical instance containers."""
+"""Step 7 - Organize C0 folders into their logical instance containers."""
 
 import os
 import json
@@ -103,12 +103,12 @@ def process_structure(
 
 
 def run() -> None:
-    """Run Step 6."""
-    print("🗂️ Step 6: Reorganize C0 folders...")
+    """Run Step 7."""
+    print("🗂️ Step 7: Reorganize C0 folders...")
     print(f"📁 Base path: {config.FOLDER_TO_ORGANIZE}")
-    print(f"🧪 Simulate: {config.SIMULATE_STEP_6}")
+    print(f"🧪 Simulate: {config.SIMULATE_STEP_7}")
 
-    confirm = input("❓ Proceed with Step 6? [y/N]: ")
+    confirm = input("❓ Proceed with Step 7? [y/N]: ")
     if confirm.strip().lower() != "y":
         print("❌ Cancelled.")
         return
@@ -116,12 +116,12 @@ def run() -> None:
     folder_mapping = load_folder_mapping(config.FOLDER_MAPPINGS)
 
     moved, skipped = process_structure(
-        config.FOLDER_TO_ORGANIZE, folder_mapping, config.SIMULATE_STEP_6
+        config.FOLDER_TO_ORGANIZE, folder_mapping, config.SIMULATE_STEP_7
     )
 
     if moved:
         write_report(
-            step_folder="step_6",
+            step_folder="step_7",
             filename_prefix="c0_folders_moved",
             header=["ORIGINAL_PATH", "NEW_PATH"],
             rows=moved,
@@ -129,7 +129,7 @@ def run() -> None:
 
     if skipped:
         write_report(
-            step_folder="step_6",
+            step_folder="step_7",
             filename_prefix="folders_skipped",
             header=["FOLDER_REQUIRES_MANUAL_REVIEW"],
             rows=skipped,

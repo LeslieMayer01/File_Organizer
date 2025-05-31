@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 
-from organizer import step7_create_electronic_index as sei
+from organizer import step8_create_electronic_index as sei
 
 
 class TestElectronicIndex(unittest.TestCase):

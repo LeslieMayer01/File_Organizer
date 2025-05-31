@@ -15,9 +15,9 @@ from utils.reports import write_report
 
 
 def run() -> None:
-    print("📄 Step 7: Create Electronic Index...")
+    print("📄 Step 8: Create Electronic Index...")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
-    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_7}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_8}")
 
     if not os.path.isfile(config.DATABASE_FILE):
         print(f"⚠️ Database Not Found: {config.DATABASE_FILE}")
@@ -31,7 +31,7 @@ def run() -> None:
 
     if results:
         write_report(
-            step_folder="step_7",
+            step_folder="step_8",
             filename_prefix="conflicts_and_omitted",
             header=["Archivo Inválido", "Causa del problema", "Ruta"],
             rows=results["invalid"] + results["omitted"],

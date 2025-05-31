@@ -18,9 +18,9 @@ prefijos_permitidos = (
 
 
 def run():
-    print("✏️ Step 8: Check Folders...")
+    print("✏️ Step 9: Check Folders...")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
-    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_8}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_9}")
 
     confirm = input("❓ Do you want to continue? [y/N]: ")
     if confirm.strip().lower() != "y":
