@@ -1,12 +1,23 @@
-import os
-from datetime import datetime
+"""Step 9 - Check folder naming conventions and summarize structure.
 
-import pandas as pd
+This script traverses a directory recursively and identifies folders
+that do not start with an approved prefix. It generates:
+
+- A report of invalid folder names for manual review.
+- A summary report:
+  - Valid vs invalid folder count
+  - File count in valid folders
+  - File count starting with '00IndiceElectronicoC0'
+"""
+
+import os
+from typing import List
 
 import config
+from utils.reports import write_report
 
-# Prefijos permitidos
-prefijos_permitidos = (
+
+VALID_PREFIXES = (
     "05380",
     "01Primera",
     "01Unica",
@@ -17,7 +28,81 @@ prefijos_permitidos = (
 )
 
 
-def run():
+def is_valid_folder(folder_name: str) -> bool:
+    """Return True if the folder starts with a valid prefix."""
+    return folder_name.startswith(VALID_PREFIXES)
+
+
+def is_index_file(file_name: str) -> bool:
+    """Return True if the file starts with 00IndiceElectronicoC0."""
+    return file_name.startswith("00IndiceElectronicoC0")
+
+
+def analyze_folders(root_path: str) -> None:
+    """
+    Analyze folder structure, collect invalid folders and summary stats.
+
+    Args:
+        root_path: The directory to traverse.
+    """
+    invalid_folders: List[List[str]] = []
+
+    valid_folder_count = 0
+    invalid_folder_count = 0
+    valid_folder_file_total = 0
+    index_file_total = 0
+
+    for current_root, dirs, _ in os.walk(root_path):
+        for folder in dirs:
+            full_path = os.path.join(current_root, folder)
+
+            if is_valid_folder(folder):
+                valid_folder_count += 1
+
+                try:
+                    contents = os.listdir(full_path)
+                except Exception:
+                    continue
+
+                for file_name in contents:
+                    file_path = os.path.join(full_path, file_name)
+                    if os.path.isfile(file_path):
+                        valid_folder_file_total += 1
+                        if is_index_file(file_name):
+                            index_file_total += 1
+            else:
+                invalid_folder_count += 1
+                invalid_folders.append([folder, full_path])
+
+    write_report(
+        step_folder="step_9",
+        filename_prefix="invalid_folders",
+        header=["Folder Name", "Path"],
+        rows=invalid_folders,
+    )
+
+    write_report(
+        step_folder="step_9",
+        filename_prefix="summary",
+        header=[
+            "Valid Folders",
+            "Invalid Folders",
+            "Files in Valid Folders",
+            "00IndiceElectronicoC0 Files",
+        ],
+        rows=[
+            [
+                valid_folder_count,
+                invalid_folder_count,
+                valid_folder_file_total,
+                index_file_total,
+            ]
+        ],
+    )
+
+
+def run() -> None:
+    """Main entry point for Step 9."""
     print("✏️ Step 9: Check Folders...")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
     print(f"🧪 Simulation mode: {config.SIMULATE_STEP_9}")
@@ -26,37 +111,6 @@ def run():
     if confirm.strip().lower() != "y":
         print("🚫 Operation cancelled by user.")
         return
-    # 🔧 Cambia aquí tu ruta base
-    listar_carpetas_no_validas(config.FOLDER_TO_ORGANIZE)
 
-
-def añadir_fecha_y_hora_al_nombre(nombre):
-    fecha_hora = datetime.now().strftime("%d-%m-%Y_%H-%M")
-    base, ext = os.path.splitext(nombre)
-    return f"{fecha_hora}-{base}.xlsx"
-
-
-def listar_carpetas_no_validas(ruta_base):
-    carpetas_no_validas = []
-
-    for root, dirs, _ in os.walk(ruta_base):
-        for carpeta in dirs:
-            if not carpeta.startswith(prefijos_permitidos):
-                ruta_completa = os.path.join(root, carpeta)
-                carpetas_no_validas.append(
-                    {"NOMBRE_CARPETA": carpeta, "RUTA": ruta_completa}
-                )
-
-    # Guardar en Excel
-    if carpetas_no_validas:
-        df = pd.DataFrame(carpetas_no_validas)
-        os.makedirs("./reports", exist_ok=True)
-        nombre_archivo = añadir_fecha_y_hora_al_nombre("Carpetas_No_Validas")
-        ruta_archivo = os.path.join("reports", nombre_archivo)
-
-        with pd.ExcelWriter(ruta_archivo, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="Carpetas")
-
-        print(f"✅ Reporte Excel generado: {ruta_archivo}")
-    else:
-        print("✅ No se encontraron carpetas no válidas.")
+    analyze_folders(config.FOLDER_TO_ORGANIZE)
+    print("✅ Reports generated in 'step_9' folder.")
