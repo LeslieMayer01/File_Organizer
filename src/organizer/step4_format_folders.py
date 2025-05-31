@@ -1,10 +1,10 @@
 """
-Module: step3_format_folders.py
+Module: step4_format_folders.py
 
 This script renames folders in a specified directory so that they follow
 an expected naming convention: 23 digits derived from a process number
 pattern. It logs all rename actions and conflicts in timestamped CSV reports.
-The behavior is controlled by a simulation flag (SIMULATE_STEP_3).
+The behavior is controlled by a simulation flag (SIMULATE_STEP_4).
 """
 
 import os
@@ -112,9 +112,9 @@ def rename_folders(
 
 def run() -> None:
     """Run the folder renaming process, respecting simulation flag."""
-    print("\n🗂️ Step 3: Format Folder Names")
+    print("\n🗂️ Step 4: Format Folder Names")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
-    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_3}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_4}")
 
     confirm = input("❓ Do you want to continue? [y/N]: ")
     if confirm.strip().lower() != "y":
@@ -125,21 +125,21 @@ def run() -> None:
     try:
         renamed, conflicts, errors = rename_folders(
             entries,
-            simulate=config.SIMULATE_STEP_3,
+            simulate=config.SIMULATE_STEP_4,
         )
     except Exception as e:
-        print(f"❌ Error while executing step 3: {e}")
+        print(f"❌ Error while executing step 4: {e}")
         renamed, conflicts, errors = [], [], [["general", "run()", str(e)]]
 
     write_report(
-        step_folder="step_3",
+        step_folder="step_4",
         filename_prefix="formatted_folders",
         header=["Path", "Original Name", "New Name"],
         rows=renamed,
     )
 
     write_report(
-        step_folder="step_3",
+        step_folder="step_4",
         filename_prefix="conflicts",
         header=["Path", "Conflicting Name"],
         rows=conflicts,
@@ -147,7 +147,7 @@ def run() -> None:
 
     if errors:
         write_report(
-            step_folder="step_3",
+            step_folder="step_4",
             filename_prefix="rename_errors",
             header=["Path", "Target Name", "Error"],
             rows=errors,

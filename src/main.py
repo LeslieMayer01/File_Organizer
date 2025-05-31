@@ -10,11 +10,12 @@ STEPS = {
     1: "step1_delete_empty_folders",
     2: "step2_delete_index_files",
     3: "step3_format_folders",
-    4: "step4_create_C0_folders",
-    5: "step5_organizate_files",
-    6: "step6_subfolder_organization",
-    7: "step7_create_electronic_index",
-    8: "step8_check_folders",
+    4: "step4_format_folders",
+    5: "step5_create_C0_folders",
+    6: "step6_organizate_files",
+    7: "step7_subfolder_organization",
+    8: "step8_create_electronic_index",
+    9: "step9_check_folders",
     # Agrega más pasos aquí según tu proyecto
 }
 

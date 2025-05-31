@@ -1,4 +1,4 @@
-"""Step 5 - Organize and rename files inside C0 folders."""
+"""Step 6 - Organize and rename files inside C0 folders."""
 
 import os
 import re
@@ -101,9 +101,9 @@ def process_directory(
 
 def run() -> None:
     """Run Step 5: organize and rename files in C0 folders."""
-    print("✏️ Step 5: Organize files in C0 folders...")
+    print("✏️ Step 6: Organize files in C0 folders...")
     print(f"📁 Folder to process: {config.FOLDER_TO_ORGANIZE}")
-    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_5}")
+    print(f"🧪 Simulation mode: {config.SIMULATE_STEP_6}")
 
     confirm = input("❓ Do you want to continue? [y/N]: ")
     if confirm.strip().lower() != "y":
@@ -111,12 +111,12 @@ def run() -> None:
         return
 
     renamed, errors = process_directory(
-        config.FOLDER_TO_ORGANIZE, config.SIMULATE_STEP_5
+        config.FOLDER_TO_ORGANIZE, config.SIMULATE_STEP_6
     )
 
     if renamed:
         write_report(
-            step_folder="step_5",
+            step_folder="step_6",
             filename_prefix="organized_files",
             header=[
                 "OLD_NAME",
@@ -131,7 +131,7 @@ def run() -> None:
 
     if errors:
         write_report(
-            step_folder="step_5",
+            step_folder="step_6",
             filename_prefix="manual_review_files",
             header=["FILENAME", "PATH", "ERROR"],
             rows=errors,

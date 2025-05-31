@@ -1,9 +1,9 @@
-"""Tests for refactored step5_organizate_files.py."""
+"""Tests for refactored step6_organizate_files.py."""
 
 import os
 from pathlib import Path
 from collections import defaultdict
-from src.organizer.step5_organizate_files import (
+from src.organizer.step6_organizate_files import (
     normalize_filename,
     build_final_name,
     process_directory,
@@ -62,7 +62,7 @@ def test_rename_file_error(tmp_path: Path, monkeypatch) -> None:
         raise OSError("fail")
 
     monkeypatch.setattr(
-        "src.organizer.step5_organizate_files.os.rename",
+        "src.organizer.step6_organizate_files.os.rename",
         fail_rename,
     )
 

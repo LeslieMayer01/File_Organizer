@@ -28,7 +28,7 @@ existentes en la ruta a organizar que
 cumplan que contengan la palabra indice en su nombre ya sea con mayusculas o
 minusculas y sean excel
 
-
+Tambien añadir que se deben eliminar los archivos Desktop.ini
 ---
 
 ## 3. Organización de carpetas
@@ -94,6 +94,10 @@ Pasos:
 
 3. Crear reporte con las rutas de las carpetas nuevas, nombre y ruta
 
+
+En este step, estan quedando archivos sueltos, añadir a la logica que cuando alán archivos sueltos 
+y no exista la carpeta C01Principal, la debe crear y mover todos los archivos sueltos a esta carpeta
+
 ### b. Subcarpetas dentro de cada instancia
 
 Ejemplo:
@@ -143,6 +147,9 @@ llamada 01PrimeraInstancia entonces
 nuevo y ruta.
 
 7. crear un reporte con las carpetas nuevas, nombre y ruta.
+
+Se debe añadir que cuando encuentre conflictos se añade a revisión manual
+
 
 ---
 
