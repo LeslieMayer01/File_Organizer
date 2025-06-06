@@ -79,4 +79,4 @@ Example:
 
 ---
 
-🔗 [Back to Main Index](index.md)
+🔗 [Back to Main Index](../index.md)

@@ -1,211 +1,256 @@
-"""Tests for step5_create_C0_folders.py."""
-
+import sys
 import json
 from pathlib import Path
 import pytest
-
-from src.organizer.step5_create_C0_folders import (
-    normalize_string,
-    is_target_folder,
-    get_matching_key,
-    move_all_files,
-    rename_subfolders,
-    handle_folder,
-    load_keyword_mapping,
+from organizer.step5_create_C0_folders import (
+    get_unique_name,
+    merge_folders,
+    rename_and_merge_subfolders,
+    handle_only_files,
+    handle_folders_and_files,
 )
+
+# Ensure src is on sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 @pytest.fixture
-def keyword_mapping(tmp_path: Path) -> Path:
-    mapping = {
-        "C01Principal": ["ppal", "principal"],
-        "C05MedidasCautelares": ["medida", "cautelar"],
-    }
-    path = tmp_path / "mapping.json"
-    path.write_text(json.dumps(mapping), encoding="utf-8")
-    return path
+def keywords_mapping():
+    """Load the actual keywords.json mapping for folder renaming."""
+    mapping_path = Path(__file__).parent.parent / "data/keywords.json"
+    with open(mapping_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def test_normalize_string() -> None:
-    assert normalize_string("Ppal !@#") == "ppal"
-    assert normalize_string("  MÉDIDA ") == "mdida"
+def test_get_unique_name_no_conflict(tmp_path):
+    file_path = tmp_path / "file.txt"
+    # File does not exist yet
+    unique = get_unique_name(str(file_path))
+    assert unique == str(file_path)
 
 
-def test_is_target_folder() -> None:
-    from config import JUDGEMENT_ID
-
-    folder_name = JUDGEMENT_ID[:5] + "_ABC"
-    assert is_target_folder(folder_name) is True
-
-
-def test_get_matching_key_found(keyword_mapping: Path) -> None:
-    mapping = load_keyword_mapping(str(keyword_mapping))
-    assert get_matching_key("Ppal Cuaderno", mapping) == "C01Principal"
-    assert get_matching_key("Medida Extra", mapping) == "C05MedidasCautelares"
-
-
-def test_get_matching_key_not_found(keyword_mapping: Path) -> None:
-    mapping = load_keyword_mapping(str(keyword_mapping))
-    assert get_matching_key("no-match", mapping) is None
+def test_get_unique_name_conflict(tmp_path):
+    file_path = tmp_path / "file.txt"
+    file_path.write_text("content")
+    # Expect a new name with _1 suffix
+    unique = get_unique_name(str(file_path))
+    assert unique.endswith("_1.txt")
+    # Create second conflict
+    Path(unique).write_text("other")
+    unique2 = get_unique_name(str(file_path))
+    assert unique2.endswith("_2.txt")
 
 
-def test_move_all_files(tmp_path: Path) -> None:
+def test_merge_folders_simple(tmp_path):
+    # src has one file, dst is empty
     src = tmp_path / "src"
     dst = tmp_path / "dst"
     src.mkdir()
     dst.mkdir()
-    (src / "a.txt").write_text("data")
+    f = src / "doc.txt"
+    f.write_text("data")
+    moved = []
+    merged = []
+    errors = []
+    merge_folders(str(src), str(dst), False, moved, merged, errors)
+    # After merge, src should be removed
+    assert not src.exists()
+    # File should be in dst
+    assert (dst / "doc.txt").exists()
+    # Records should be correct
+    assert [str(src), str(dst)] in merged
+    assert [str(f), str(dst / "doc.txt")] in moved
 
-    moved = move_all_files(str(src), str(dst), simulate=False)
-    assert len(moved) == 1
-    assert (dst / "a.txt").exists()
+
+def test_merge_folders_conflict(tmp_path):
+    # src has file 'doc.txt', dst has same file
+    src = tmp_path / "src"
+    dst = tmp_path / "dst"
+    src.mkdir()
+    dst.mkdir()
+    (src / "doc.txt").write_text("one")
+    (dst / "doc.txt").write_text("two")
+    moved = []
+    merged = []
+    errors = []
+    merge_folders(str(src), str(dst), False, moved, merged, errors)
+    # Check that dst still has original file and new file with suffix
+    names = {f.name for f in dst.iterdir()}
+    assert "doc.txt" in names
+    assert any(n.startswith("doc_1") for n in names)
+    # src removed
+    assert not src.exists()
+    # Check merged report has merge entry
+    assert [str(src), str(dst)] in merged
+    # Confirm a file move from src is recorded
+    assert any(rec[0].endswith("doc.txt") for rec in moved)
 
 
-def test_rename_subfolders_success(tmp_path: Path) -> None:
-    base = tmp_path / "case"
+@pytest.mark.parametrize(
+    "subfolder_name, expected_standard",
+    [
+        ("PrincipalSection", "C01Principal"),
+        ("MedidaCautelarDocs", "C05MedidasCautelares"),
+        ("Ejecucion2020", "C10EjecucionSentencia"),
+    ],
+)
+def test_rename_subfolders_using_keywords(
+    tmp_path, keywords_mapping, subfolder_name, expected_standard
+):
+    base = tmp_path / "base"
     base.mkdir()
-    (base / "ppal").mkdir()
-    (base / "medida prueba").mkdir()
-
-    mapping = {
-        "C01Principal": ["ppal"],
-        "C05MedidasCautelares": ["medida"],
-    }
-
-    renamed, skipped, conflicted = rename_subfolders(
-        str(base), ["ppal", "medida prueba"], mapping, simulate=False
+    sub = base / subfolder_name
+    sub.mkdir()
+    moved = []
+    renamed = []
+    merged = []
+    errors = []
+    renamed_res, skipped = rename_and_merge_subfolders(
+        str(base),
+        [sub.name],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        errors,
     )
-
-    renamed_names = [Path(new).name for _, new in renamed]
-    assert "C01Principal" in renamed_names
-    assert "C05MedidasCautelares" in renamed_names
+    new_path = base / expected_standard
+    # Since simulate=False, rename occurs
+    assert new_path.exists()
+    assert [str(sub), str(new_path)] in renamed_res
     assert not skipped
-    assert not conflicted
 
 
-def test_rename_subfolders_conflict(tmp_path: Path) -> None:
-    base = tmp_path / "conflict"
+def test_rename_and_merge_subfolders_collision(tmp_path, keywords_mapping):
+    base = tmp_path / "base"
     base.mkdir()
-    (base / "ppal").mkdir()
-    (base / "principal").mkdir()
-
-    mapping = {"C01Principal": ["ppal", "principal"]}
-
-    renamed, skipped, conflicted = rename_subfolders(
-        str(base), ["ppal", "principal"], mapping, simulate=False
+    # Create two subfolders matching 'acumulacion'
+    sub1 = base / "Acumulacion1"
+    sub2 = base / "ACUMULACION2"
+    sub1.mkdir()
+    sub2.mkdir()
+    dst = base / "C03AcumulacionProcesos"
+    # Pre-create dst to force merge
+    dst.mkdir()
+    moved = []
+    renamed = []
+    merged = []
+    errors = []
+    renamed_res, skipped = rename_and_merge_subfolders(
+        str(base),
+        [sub1.name, sub2.name],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        errors,
     )
-
-    conflict_paths = [Path(row[0]).name for row in conflicted]
-    assert not renamed
+    # Both subfolders should be merged into dst
+    assert [str(sub1), str(dst)] in merged
+    assert [str(sub2), str(dst)] in merged
     assert not skipped
-    assert len(conflicted) == 2
-    assert "Conflict" in conflicted[0][1]
-    assert "ppal" in conflict_paths
-    assert "principal" in conflict_paths
+    assert dst.exists()
 
 
-def test_rename_subfolders_unrecognized(tmp_path: Path) -> None:
-    base = tmp_path / "unmapped"
+def test_rename_and_merge_subfolders_unrecognized(tmp_path, keywords_mapping):
+    base = tmp_path / "base"
     base.mkdir()
-    (base / "misc").mkdir()
-
-    mapping = {"C01Principal": ["ppal"]}
-
-    renamed, skipped, conflicted = rename_subfolders(
-        str(base), ["misc"], mapping, simulate=True
+    sub = base / "UnknownFolder"
+    sub.mkdir()
+    moved = []
+    renamed = []
+    merged = []
+    errors = []
+    renamed_res, skipped = rename_and_merge_subfolders(
+        str(base),
+        [sub.name],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        errors,
     )
-
-    assert not renamed
-    assert not conflicted
-    assert skipped[0][1] == "Unrecognized keyword"
+    assert skipped
+    assert [str(sub), "Unrecognized keyword"] in skipped
 
 
-def test_handle_folder_only_files(tmp_path: Path) -> None:
-    base = tmp_path / "folder"
-    base.mkdir()
-    (base / "file1.txt").write_text("ok")
-
-    moved, renamed, orphans, rename_issues = handle_folder(
-        str(base), mapping={}, simulate=False
+def test_handle_only_files(tmp_path):
+    folder = tmp_path / "onlyfiles"
+    folder.mkdir()
+    for name in ("a.txt", "b.txt"):
+        (folder / name).write_text("x")
+    moved = []
+    errors = []
+    res_moved, _, _, _, _ = handle_only_files(
+        str(folder), ["a.txt", "b.txt"], False, moved, errors
     )
+    dest = folder / "01PrimeraInstancia" / "C01Principal"
+    for name in ("a.txt", "b.txt"):
+        assert (dest / name).exists()
+    for rec in res_moved:
+        assert rec[0].startswith(str(folder))
+        assert rec[1].startswith(str(dest))
 
-    target = base / "01PrimeraInstancia" / "C01Principal" / "file1.txt"
-    assert target.exists()
-    assert len(moved) == 1
-    assert not renamed
+
+def test_handle_folders_and_files_success(tmp_path, keywords_mapping):
+    folder = tmp_path / "mixed"
+    folder.mkdir()
+    sub = folder / "RecursoFolder"
+    sub.mkdir()
+    # Keyword 'Recurso' maps to 'C08Recurso'
+    f = folder / "file1.txt"
+    f.write_text("data")
+    moved = []
+    renamed = []
+    merged = []
+    orphans = []
+    errors = []
+    handle_folders_and_files(
+        str(folder),
+        [sub.name],
+        [f.name],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        orphans,
+        errors,
+    )
+    # Renamed subfolder to C08Recurso
+    assert (folder / "C08Recurso").exists()
+    dest = folder / "01PrimeraInstancia" / "C01Principal"
+    assert (dest / "file1.txt").exists()
     assert not orphans
-    assert not rename_issues
+    assert not errors
 
 
-def test_handle_folder_conflict_and_files(tmp_path: Path) -> None:
-    base = tmp_path / "case"
-    base.mkdir()
-    (base / "ppal").mkdir()
-    (base / "principal").mkdir()
-    (base / "extra.txt").write_text("info")
-
-    mapping = {"C01Principal": ["ppal", "principal"]}
-
-    moved, renamed, orphans, rename_issues = handle_folder(
-        str(base), mapping, simulate=False
+def test_handle_folders_and_files_unrecognized(tmp_path, keywords_mapping):
+    folder = tmp_path / "mixed2"
+    folder.mkdir()
+    sub = folder / "SomeRandom"
+    sub.mkdir()
+    f = folder / "file2.txt"
+    f.write_text("data")
+    moved = []
+    renamed = []
+    merged = []
+    orphans = []
+    errors = []
+    handle_folders_and_files(
+        str(folder),
+        [sub.name],
+        [f.name],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        orphans,
+        errors,
     )
-
-    paths = [Path(row[0]).name for row in rename_issues]
-
-    assert not moved
-    assert not renamed
-    assert len(orphans) == 1
-    assert len(rename_issues) == 2
-    assert "Conflict" in rename_issues[0][1]
-    assert "ppal" in paths
-    assert "principal" in paths
-
-
-def test_handle_folder_existing_c01(tmp_path: Path) -> None:
-    base = tmp_path / "case"
-    base.mkdir()
-
-    # Subcarpetas: una que será reconocida y otra que ya existe como destino
-    (base / "misc").mkdir()
-    (base / "C01Principal").mkdir()
-
-    # Archivo suelto
-    (base / "extra.txt").write_text("a")
-
-    # mapping que lleva 'misc' → 'C01Principal' (conflicto)
-    mapping = {"C01Principal": ["misc"]}
-
-    moved, renamed, orphans, issues = handle_folder(
-        str(base), mapping, simulate=False
-    )
-
-    paths = [Path(row[0]).name for row in issues]
-    assert not moved
-    assert not renamed
-    assert len(orphans) == 1
-    assert orphans[0][1].startswith("C01Principal exists")
-    assert len(issues) == 2
-    assert "misc" in paths
-    assert "C01Principal" in paths
-
-
-def test_handle_folder_without_c01_renamed(tmp_path: Path) -> None:
-    base = tmp_path / "case"
-    base.mkdir()
-    (base / "medida").mkdir()
-    (base / "extra.txt").write_text("a")
-
-    mapping = {
-        "C05MedidasCautelares": ["medida"],
-    }
-
-    moved, renamed, orphans, issues = handle_folder(
-        str(base), mapping, simulate=False
-    )
-
-    target = base / "01PrimeraInstancia" / "C01Principal" / "extra.txt"
-    assert target.exists()
-    assert len(renamed) == 1
-    assert len(moved) == 1
-    assert not orphans
-    assert not issues
+    assert orphans
+    assert orphans[0][0].endswith("file2.txt")

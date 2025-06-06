@@ -1,0 +1,15 @@
+docker-build:
+	@echo "🔨 Building Docker image..."
+	docker build -t file-organizer .
+
+docker-clean:
+	@echo "🧹 Removing Docker image..."
+	docker rmi -f file-organizer || true
+
+docker-run:
+	@echo "🐳 Running in Docker with volume from .env..."
+	docker run --rm \
+		--env-file .env \
+		-v $(shell grep FOLDER_TO_ORGANIZE .env | cut -d '=' -f2):/data \
+		-v $(PWD)/reports:/app/reports \
+		file-organizer $(ARGS)

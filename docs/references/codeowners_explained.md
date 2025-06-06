@@ -87,4 +87,4 @@ requirements.txt         @jorduque16 @LeslieMayer01
 📌 **Tip:** If your repository is public, this configuration also helps
 contributors know who to contact for specific parts of the code.
 
-🔗 [Back to Main Index](index.md)
+🔗 [Back to Main Index](../index.md)

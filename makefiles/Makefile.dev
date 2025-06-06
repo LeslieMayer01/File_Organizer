@@ -1,0 +1,23 @@
+## ───────────────────────────────
+## 🧪 Development & Testing
+## ───────────────────────────────
+
+test:
+	@echo "🧪 Running tests..."
+	pytest -v
+
+lint:
+	@echo "🧼 Running linter..."
+	./venv/Scripts/pre-commit run --all-files
+
+format:
+	@echo "🎨 Formatting code..."
+	ruff format .
+
+typecheck:
+	@echo "🔍 Running type checks..."
+	mypy src/
+
+coverage:
+	@echo "📊 Generating coverage report..."
+	pytest --cov=src --cov-report=term-missing

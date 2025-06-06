@@ -1,28 +1,32 @@
-"""Step 5 - Create Internal Folder Structure.
+# src/organizer/step5_create_C0_folders.py
 
-This script searches for folders starting with config.JUDGEMENT_ID inside
-config.FOLDER_TO_ORGANIZE and performs restructuring based on folder content:
+"""
+Step 5 - Create Internal Folder Structure.
+
+This script searches for folders starting with
+config.JUDGEMENT_ID inside config.FOLDER_TO_ORGANIZE and
+performs restructuring based on folder content:
 
 Scenario 1: Folder contains only files → Move to
 /01PrimeraInstancia/C01Principal/
-Scenario 2: Folder contains subfolders + files → Rename folders based on a
-keyword mapping, and report top-level files needing manual classification
-and skipped folders
+Scenario 2: Folder contains subfolders + files → Rename or merge
+subfolders based on a keyword mapping, move top-level files into
+C01Principal (resolving name collisions), and report any items
+needing manual review.
 
 All changes are logged using write_report(). Behavior depends on
 config.SIMULATE_STEP_5.
 """
-
 import os
 import json
 import re
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import config
 from utils.reports import write_report
 
 
-def load_keyword_mapping(json_path: str) -> dict:
+def load_keyword_mapping(json_path: str) -> Dict[str, List[str]]:
     """Load keyword-to-folder mapping from a JSON file."""
     with open(json_path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -39,236 +43,391 @@ def is_file(path: str) -> bool:
 
 
 def normalize_string(text: str) -> str:
-    """Normalize a string to lower case and remove accents/spaces."""
+    """Normalize a string to lowercase and remove accents/spaces."""
     return re.sub(r"[^a-z0-9]", "", text.lower())
 
 
-def get_matching_key(name: str, mapping: dict) -> Optional[str]:
+def get_matching_key(
+    name: str,
+    mapping: Dict[str, List[str]],
+) -> Optional[str]:
     """Get standard folder name from a given name using the mapping."""
     normalized = normalize_string(name)
     for target, keywords in mapping.items():
-        if any(normalize_string(k) in normalized for k in keywords):
-            return target
+        for kw in keywords:
+            if normalize_string(kw) in normalized:
+                return target
     return None
 
 
-def move_all_files(
-    source_folder: str, destination_folder: str, simulate: bool
-) -> List[List[str]]:
-    """Move all files from source to destination."""
-    os.makedirs(destination_folder, exist_ok=True)
-    moved = []
+def get_unique_name(destination: str) -> str:
+    """
+    Given a desired destination path (file or folder), if it exists,
+    append a suffix _1, _2, ... until a unique one is found.
+    Returns the unique path.
+    """
+    base, ext = os.path.splitext(destination)
+    counter = 1
+    new_dest = destination
+    while os.path.exists(new_dest):
+        new_dest = f"{base}_{counter}{ext}"
+        counter += 1
+    return new_dest
 
+
+def move_all_files(
+    source_folder: str,
+    destination_folder: str,
+    simulate: bool,
+    moved_report: List[List[str]],
+    error_report: List[List[str]],
+) -> None:
+    """
+    Move all files from source_folder into destination_folder.
+    If a file name collision occurs, choose a unique name.
+    Appends each move ([src, dst]) to moved_report.
+    Logs any unexpected errors to error_report ([path, reason]).
+    """
+    os.makedirs(destination_folder, exist_ok=True)
     for file_name in os.listdir(source_folder):
         source_path = os.path.join(source_folder, file_name)
-
-        # Avoid moving the folders just created (scenario 1 case)
+        # Skip directories in this step
         if os.path.isdir(source_path):
             continue
-
-        dest_path = os.path.join(destination_folder, file_name)
-        moved.append([source_path, dest_path])
-
+        desired_dst = os.path.join(destination_folder, file_name)
+        unique_dst = get_unique_name(desired_dst)
+        moved_report.append([source_path, unique_dst])
         if not simulate:
             try:
-                os.rename(source_path, dest_path)
+                os.rename(source_path, unique_dst)
             except Exception as e:
-                print(f"❌ Failed to move {source_path}: {e}")
-
-    return moved
+                error_report.append([source_path, f"Failed to move: {e}"])
 
 
-def rename_subfolders(
+def merge_folders(
+    src_folder: str,
+    dst_folder: str,
+    simulate: bool,
+    moved_report: List[List[str]],
+    merged_report: List[List[str]],
+    error_report: List[List[str]],
+) -> None:
+    """
+    Merge contents of src_folder into dst_folder.
+    - For files: move and resolve name collisions.
+    - For subdirectories: if a subdir with same name exists in dst,
+      merge recursively; else, move or rename the subdir.
+    Record each top-level merge ([src_folder, dst_folder]) in
+    merged_report. Record each file move in moved_report.
+    Log any errors to error_report.
+    After successful merge, delete src_folder (if empty).
+    """
+    merged_report.append([src_folder, dst_folder])
+    os.makedirs(dst_folder, exist_ok=True)
+    for item in os.listdir(src_folder):
+        src_path = os.path.join(src_folder, item)
+        dst_path = os.path.join(dst_folder, item)
+        if os.path.isdir(src_path):
+            if os.path.exists(dst_path) and os.path.isdir(dst_path):
+                # Recursive merge into existing subdirectory
+                merge_folders(
+                    src_path,
+                    dst_path,
+                    simulate,
+                    moved_report,
+                    merged_report,
+                    error_report,
+                )
+            else:
+                unique_dst = (
+                    dst_path
+                    if not os.path.exists(dst_path)
+                    else get_unique_name(dst_path)
+                )
+                moved_report.append([src_path, unique_dst])
+                if not simulate:
+                    try:
+                        os.rename(src_path, unique_dst)
+                    except Exception as e:
+                        error_report.append(
+                            [src_path, f"Failed to move folder: {e}"]
+                        )
+        else:
+            # File: resolve name collision
+            unique_dst = (
+                dst_path
+                if not os.path.exists(dst_path)
+                else get_unique_name(dst_path)
+            )
+            moved_report.append([src_path, unique_dst])
+            if not simulate:
+                try:
+                    os.rename(src_path, unique_dst)
+                except Exception as e:
+                    error_report.append(
+                        [src_path, f"Failed to move file: {e}"],
+                    )
+    # After moving contents, attempt to delete the now-empty src_folder
+    if not simulate:
+        try:
+            os.rmdir(src_folder)
+        except Exception:
+            pass
+
+
+def rename_and_merge_subfolders(
     base_path: str,
     subfolder_names: List[str],
-    mapping: dict,
+    mapping: Dict[str, List[str]],
     simulate: bool,
-) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
+    moved_report: List[List[str]],
+    renamed_report: List[List[str]],
+    merged_report: List[List[str]],
+    error_report: List[List[str]],
+) -> Tuple[List[List[str]], List[List[str]]]:
     """
-    Attempt to rename subfolders using keyword mapping.
+    Rename subfolders based on mapping. If multiple subfolders map to
+    the same target name, merge their contents.
 
     Returns:
-        - renamed: [from, to]
-        - skipped: [path, reason] (no match)
-        - conflicted: [path, reason] (name collision)
+      - renamed_report: [[original_path, new_path]] for pure renames.
+      - skipped_report: [[path, reason]] for folders without match.
     """
-    rename_plan: List[Tuple[str, str]] = []
-    renamed: List[List[str]] = []
-    skipped: List[List[str]] = []
-    conflicted: List[List[str]] = []
+    skipped_report: List[List[str]] = []
+    folder_to_dst: Dict[str, List[str]] = {}
 
-    seen_targets = set()
-    collision_targets = set()
-    folder_to_dst: dict[str, str] = {}
-
+    # Build mapping from each subfolder to intended standard name
     for sub in subfolder_names:
         src_path = os.path.join(base_path, sub)
         standard = get_matching_key(sub, mapping)
-
         if not standard:
-            skipped.append([src_path, "Unrecognized keyword"])
+            skipped_report.append([src_path, "Unrecognized keyword"])
             continue
-
         dst_path = os.path.join(base_path, standard)
-        folder_to_dst[src_path] = dst_path
+        folder_to_dst.setdefault(dst_path, []).append(src_path)
 
-        if dst_path in seen_targets or os.path.exists(dst_path):
-            collision_targets.add(dst_path)
-        else:
-            seen_targets.add(dst_path)
-            rename_plan.append((src_path, dst_path))
-
-    if collision_targets:
-        print("⚠️ Conflict detected: skipping all renames in this folder.")
-
-        for src_path, dst_path in folder_to_dst.items():
-            if dst_path in collision_targets:
-                message = (
-                    "Conflict: multiple folders target "
-                    f"{os.path.basename(dst_path)}"
+    # Process each target destination
+    for dst_path, src_paths in folder_to_dst.items():
+        if len(src_paths) == 1:
+            src = src_paths[0]
+            if os.path.exists(dst_path):
+                merge_folders(
+                    src,
+                    dst_path,
+                    simulate,
+                    moved_report,
+                    merged_report,
+                    error_report,
                 )
-                conflicted.append([src_path, message])
+            else:
+                renamed_report.append([src, dst_path])
+                if not simulate:
+                    try:
+                        os.rename(src, dst_path)
+                    except Exception as e:
+                        skipped_report.append([src, f"Rename error: {e}"])
+        else:
+            # Collision: merge multiple src into one dst
+            first_src = src_paths[0]
+            if not os.path.exists(dst_path):
+                renamed_report.append([first_src, dst_path])
+                if not simulate:
+                    try:
+                        os.rename(first_src, dst_path)
+                    except Exception as e:
+                        skipped_report.append(
+                            [
+                                first_src,
+                                f"Rename error: {e}",
+                            ]
+                        )
+            else:
+                merge_folders(
+                    first_src,
+                    dst_path,
+                    simulate,
+                    moved_report,
+                    merged_report,
+                    error_report,
+                )
+            for src in src_paths[1:]:
+                merge_folders(
+                    src,
+                    dst_path,
+                    simulate,
+                    moved_report,
+                    merged_report,
+                    error_report,
+                )
 
-        return [], skipped, conflicted
-
-    for src, dst in rename_plan:
-        renamed.append([src, dst])
-        if not simulate:
-            try:
-                os.rename(src, dst)
-            except Exception as error:
-                skipped.append([src, f"Rename error: {error}"])
-
-    return renamed, skipped, conflicted
-
-
-def handle_folder(
-    folder_path: str,
-    mapping: dict,
-    simulate: bool,
-) -> Tuple[List[List[str]], List[List[str]], List[List[str]], List[List[str]]]:
-    """Delegates processing based on folder content."""
-    items = os.listdir(folder_path)
-    file_names = [f for f in items if is_file(os.path.join(folder_path, f))]
-    folder_names = [
-        f for f in items if os.path.isdir(os.path.join(folder_path, f))
-    ]
-
-    if not folder_names:
-        moved, renamed, orphans = handle_only_files(
-            folder_path, file_names, simulate
-        )
-        return moved, renamed, orphans, []
-
-    return handle_folders_and_files(
-        folder_path, folder_names, file_names, mapping, simulate
-    )
+    return renamed_report, skipped_report
 
 
 def handle_only_files(
     folder_path: str,
     file_names: List[str],
     simulate: bool,
-) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
+    moved_report: List[List[str]],
+    error_report: List[List[str]],
+) -> Tuple[
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+]:
     """
     Scenario 1: folder contains only files.
     Moves them into 01PrimeraInstancia/C01Principal.
     """
     target = os.path.join(folder_path, "01PrimeraInstancia", "C01Principal")
-    moved = move_all_files(folder_path, target, simulate)
-    return moved, [], []
-
-
-def handle_folders_and_files(
-    folder_path: str,
-    subfolder_names: List[str],
-    file_names: List[str],
-    mapping: dict,
-    simulate: bool,
-) -> Tuple[List[List[str]], List[List[str]], List[List[str]], List[List[str]]]:
-    """
-    Scenario 2: folder has subfolders and possibly files.
-    Returns:
-        - moved files
-        - renamed folders
-        - orphans with reason
-        - rename errors with reason
-    """
-    renamed, skipped, conflicted = rename_subfolders(
-        folder_path, subfolder_names, mapping, simulate
-    )
-
-    rename_errors = skipped + conflicted
-
-    if rename_errors:
-        existing_folders = [
-            name
-            for name in os.listdir(folder_path)
-            if os.path.isdir(os.path.join(folder_path, name))
-        ]
-
-        reason = (
-            "C01Principal exists. Files not moved automatically."
-            if "C01Principal" in existing_folders
-            else "Rename failed, review manually"
-        )
-
-        orphans = [[os.path.join(folder_path, f), reason] for f in file_names]
-        return [], renamed, orphans, rename_errors
-
-    # Verifica si ya existe una subcarpeta llamada C01Principal
-    subdirs = [
-        name
-        for name in os.listdir(folder_path)
-        if os.path.isdir(os.path.join(folder_path, name))
-    ]
-
-    if "C01Principal" not in subdirs:
-        moved = move_files_to_new_c01(folder_path, file_names, simulate)
-        return moved, renamed, [], []
-
-    orphans = [
-        [
-            os.path.join(folder_path, f),
-            "C01Principal exists. Files not moved automatically.",
-        ]
-        for f in file_names
-    ]
-
-    return [], renamed, orphans, []
+    move_all_files(folder_path, target, simulate, moved_report, error_report)
+    return moved_report, [], [], [], error_report
 
 
 def move_files_to_new_c01(
     folder_path: str,
     file_names: List[str],
     simulate: bool,
-) -> List[List[str]]:
+    moved_report: List[List[str]],
+    error_report: List[List[str]],
+) -> None:
     """
-    Creates 01PrimeraInstancia/C01Principal if needed and moves files there.
-
-    Returns a list of [src, dst] moves (even if simulated).
+    Creates 01PrimeraInstancia/C01Principal if needed and moves
+    top-level files there, resolving name collisions.
     """
     target = os.path.join(folder_path, "01PrimeraInstancia", "C01Principal")
     os.makedirs(target, exist_ok=True)
-
-    results: List[List[str]] = []
     for name in file_names:
         src = os.path.join(folder_path, name)
         dst = os.path.join(target, name)
-        results.append([src, dst])
-
+        unique_dst = get_unique_name(dst)
+        moved_report.append([src, unique_dst])
         if not simulate:
             try:
-                os.rename(src, dst)
-            except Exception as error:
-                results[-1][1] = f"Error: {error}"
+                os.rename(src, unique_dst)
+            except Exception as e:
+                error_report.append([src, f"Failed to move: {e}"])
 
-    return results
+
+def handle_folders_and_files(
+    folder_path: str,
+    subfolder_names: List[str],
+    file_names: List[str],
+    mapping: Dict[str, List[str]],
+    simulate: bool,
+    moved_report: List[List[str]],
+    renamed_report: List[List[str]],
+    merged_report: List[List[str]],
+    orphans_report: List[List[str]],
+    error_report: List[List[str]],
+) -> None:
+    """
+    Scenario 2: folder has subfolders and possibly top-level files.
+    - Rename or merge subfolders.
+    - Move top-level files into C01Principal.
+    - If rename/merge errors occur, mark top-level files as orphans.
+    """
+    # Attempt to rename or merge subfolders
+    renamed, skipped = rename_and_merge_subfolders(
+        folder_path,
+        subfolder_names,
+        mapping,
+        simulate,
+        moved_report,
+        renamed_report,
+        merged_report,
+        error_report,
+    )
+    # If any skipped (errors), treat files as needing manual review
+    if skipped:
+        reason = "Rename/merge issues, review manually"
+        for f in file_names:
+            orphans_report.append([os.path.join(folder_path, f), reason])
+        return
+
+    # After renaming/merging, ensure C01Principal exists, then move files
+    subdirs_after = [
+        name
+        for name in os.listdir(folder_path)
+        if os.path.isdir(os.path.join(folder_path, name))
+    ]
+    if "C01Principal" not in subdirs_after:
+        move_files_to_new_c01(
+            folder_path, file_names, simulate, moved_report, error_report
+        )
+    else:
+        c01_path = os.path.join(
+            folder_path, "01PrimeraInstancia", "C01Principal"
+        )
+        os.makedirs(c01_path, exist_ok=True)
+        for name in file_names:
+            src = os.path.join(folder_path, name)
+            dst = os.path.join(c01_path, name)
+            unique_dst = get_unique_name(dst)
+            moved_report.append([src, unique_dst])
+            if not simulate:
+                try:
+                    os.rename(src, unique_dst)
+                except Exception as e:
+                    error_report.append([src, f"Failed to move: {e}"])
+
+
+def handle_folder(
+    folder_path: str,
+    mapping: Dict[str, List[str]],
+    simulate: bool,
+) -> Tuple[
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+    List[List[str]],
+]:
+    """
+    Delegates processing based on folder content.
+    Returns lists: moved, renamed, merged, orphans, errors.
+    """
+    moved: List[List[str]] = []
+    renamed: List[List[str]] = []
+    merged: List[List[str]] = []
+    orphans: List[List[str]] = []
+    errors: List[List[str]] = []
+    try:
+        items = os.listdir(folder_path)
+    except Exception as e:
+        errors.append([folder_path, f"Cannot list directory: {e}"])
+        return moved, renamed, merged, orphans, errors
+
+    file_names = [f for f in items if is_file(os.path.join(folder_path, f))]
+    folder_names = [
+        f for f in items if os.path.isdir(os.path.join(folder_path, f))
+    ]
+    if not folder_names:
+        # Only files
+        _, _, _, _, _ = handle_only_files(
+            folder_path, file_names, simulate, moved, errors
+        )
+        return moved, renamed, merged, orphans, errors
+
+    handle_folders_and_files(
+        folder_path,
+        folder_names,
+        file_names,
+        mapping,
+        simulate,
+        moved,
+        renamed,
+        merged,
+        orphans,
+        errors,
+    )
+    return moved, renamed, merged, orphans, errors
 
 
 def find_judgment_folders_recursive(base_path: str) -> List[str]:
-    """Find all folders recursively starting with the first 5 digits of ID."""
-    folders = []
+    """Find all folders recursively starting with first 5 digits of ID."""
+    folders: List[str] = []
     for root, dirs, _ in os.walk(base_path):
         for d in dirs:
             if is_target_folder(d):
@@ -288,44 +447,45 @@ def run() -> None:
 
     mapping = load_keyword_mapping(config.KEYWORDS_JSON)
     target_folders = find_judgment_folders_recursive(config.FOLDER_TO_ORGANIZE)
-    all_moved = []
-    all_renamed = []
-    all_orphans = []
-    all_rename_issues = []
+
+    all_moved: List[List[str]] = []
+    all_renamed: List[List[str]] = []
+    all_merged: List[List[str]] = []
+    all_orphans: List[List[str]] = []
+    all_errors: List[List[str]] = []
 
     for folder in target_folders:
-        moved, renamed, orphans, rename_issues = handle_folder(
+        moved, renamed, merged, orphans, errors = handle_folder(
             folder, mapping, simulate=config.SIMULATE_STEP_5
         )
         all_moved.extend(moved)
         all_renamed.extend(renamed)
+        all_merged.extend(merged)
         all_orphans.extend(orphans)
-        all_rename_issues.extend(rename_issues)
+        all_errors.extend(errors)
 
+    # Write reports for each action
     write_report(
         step_folder="step_5",
         filename_prefix="moved_files",
         header=["From", "To"],
         rows=all_moved,
     )
-
-    write_report(
-        step_folder="step_5",
-        filename_prefix="skipped_folder_renames",
-        header=["Folder Path", "Reason"],
-        rows=all_rename_issues,
-    )
-
     write_report(
         step_folder="step_5",
         filename_prefix="renamed_folders",
-        header=["Original Name", "New Name"],
+        header=["Original Path", "New Path"],
         rows=all_renamed,
     )
-
     write_report(
         step_folder="step_5",
-        filename_prefix="manual_review_files",
-        header=["Unclassified File Path", "Reason"],
-        rows=all_orphans,
+        filename_prefix="merged_folders",
+        header=["Source Folder", "Destination Folder"],
+        rows=all_merged,
+    )
+    write_report(
+        step_folder="step_5",
+        filename_prefix="manual_review",
+        header=["Path", "Reason"],
+        rows=all_orphans + all_errors,
     )
