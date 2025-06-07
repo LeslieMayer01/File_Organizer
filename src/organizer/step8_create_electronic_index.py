@@ -62,6 +62,7 @@ def filter_target_folders(dirs: List[str]) -> List[str]:
         "01PrimeraInstancia",
         "02SegundaInstancia",
         "03RecursosExtraordinarios",
+        "04Ejecucion",
     )
     return [d for d in dirs if d.startswith(prefixes)]
 
@@ -84,21 +85,12 @@ def process_sub_folders(base_folder: str) -> dict:
 
             for check in validations:
                 if check:
-                    return {"status": "invalid", "results": check}
+                    continue
 
             if validate_if_file_exists(folder_path, index_number):
-                invalid_index = f"00IndiceElectronicoC0{index_number}.xlsm"
-                invalid_result = {
-                    "Archivo Inválido": invalid_index,
-                    "Causa del problema": "Archivo ya existe",
-                    "Ruta": folder_path,
-                }
-                return {
-                    "status": "omitted",
-                    "results": [invalid_result],
-                }
+                continue
 
-            return {
+            result = {
                 "status": "valid",
                 "results": generate_index_file(
                     folder_path, sub_dir, index_number, radicado

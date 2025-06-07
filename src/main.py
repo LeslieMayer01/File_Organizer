@@ -9,7 +9,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 STEPS = {
     1: "step1_delete_empty_folders",
     2: "step2_delete_index_files",
-    3: "step3_format_folders",
+    3: "step3_remove_desktop_ini",
     4: "step4_format_folders",
     5: "step5_create_C0_folders",
     6: "step6_organizate_files",

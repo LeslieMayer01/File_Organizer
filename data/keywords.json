@@ -20,7 +20,9 @@
     "MS",
     "Medias Cautelares",
     "MEDIDA CAUTELAR",
-    "Cuaderno 2 Medidas Cautelares"
+    "Cuaderno 2 Medidas Cautelares",
+    "02MeddiasCautelares",
+    "02MedidasCautelares"
   ],
   "C03AcumulacionProcesos": [
     "acumulacion",
@@ -60,7 +62,9 @@
     "Extraordinario",
     "Conflicto",
     "Sancionatorio",
-    "Vigilancia"
+    "Vigilancia",
+    "Cuaderno 2 Consulta",
+    "Cuaderno 3 Consulta"
   ],
   "C10EjecucionSentencia": [
     "tramiteposterior",

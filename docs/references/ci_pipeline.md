@@ -113,4 +113,4 @@ This ensures all changes merged into `main` are validated beforehand.
 
 ---
 
-🔗 [Back to Main Index](index.md)
+🔗 [Back to Main Index](../index.md)

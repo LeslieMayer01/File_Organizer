@@ -26,12 +26,25 @@ def get_all_judgment_folders(base_path: str) -> List[str]:
 
 
 def is_c0_structure_only(path: str) -> bool:
-    """Check if all subfolders in the path start with 'C0'."""
-    children = os.listdir(path)
+    """
+    Check that every subdirectory in `path` either:
+    - Starts with 'C0' (case-insensitive), or
+    - Is exactly '01PrimeraInstancia' (case-insensitive).
+
+    The '01PrimeraInstancia' directory may or may not be present.
+    """
+    # Gather only the immediate subdirectories
+    subdirs = [
+        name
+        for name in os.listdir(path)
+        if os.path.isdir(os.path.join(path, name))
+    ]
+
+    # Ensure each subdirectory meets one of the allowed patterns
     return all(
-        os.path.isdir(os.path.join(path, child))
-        and child.upper().startswith("C0")
-        for child in children
+        subdir.lower() == "01primerainstancia"
+        or subdir.upper().startswith("C0")
+        for subdir in subdirs
     )
 
 

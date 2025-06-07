@@ -1,0 +1,19 @@
+## ───────────────────────────────
+## 🧪 Pre-execution Environment Checks
+## ───────────────────────────────
+
+check-env:
+	@echo "🔍 Validating .env configuration..."
+	@test -f .env || (echo "❌ .env file not found!" && exit 1)
+	@grep -q FOLDER_TO_ORGANIZE .env || (echo "❌ Missing FOLDER_TO_ORGANIZE in .env" && exit 1)
+	@echo "✅ .env file is valid."
+
+check-docker:
+	@echo "🐋 Checking Docker installation..."
+	@command -v docker >/dev/null 2>&1 || { \
+		echo >&2 '❌ Docker is not installed. Aborting.'; exit 1; \
+	}
+	@echo '✅ Docker is installed.'
+
+check-all: check-env check-docker
+	@echo "✅ All checks passed."

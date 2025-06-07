@@ -1,0 +1,11 @@
+## ───────────────────────────────
+## 📄 Documentation Utilities
+## ───────────────────────────────
+
+docs-preview:
+	@echo "🧾 Previewing documentation..."
+	python -m markdown docs/index.md
+
+docs-validate:
+	@echo "✅ Checking Markdown formatting..."
+	markdownlint docs/**/*.md
