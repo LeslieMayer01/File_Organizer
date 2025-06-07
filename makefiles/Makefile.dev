@@ -1,6 +1,17 @@
 ## ───────────────────────────────
 ## 🧪 Development & Testing
 ## ───────────────────────────────
+VENV := venv
+PYTHON := python
+
+setup:
+	$(PYTHON) -m venv $(VENV)
+	$(VENV)/Scripts/python -m pip install --upgrade pip
+	$(VENV)/Scripts/pip install -r requirements.txt
+	$(VENV)/Scripts/pre-commit install
+	@mkdir -p reports/
+	@mkdir -p logs/
+	@echo "✅ Setup Completed."
 
 test:
 	@echo "🧪 Running tests..."

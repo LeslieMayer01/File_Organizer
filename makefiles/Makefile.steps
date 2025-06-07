@@ -2,6 +2,13 @@
 ## 🧩 Run Individual Steps
 ## ───────────────────────────────
 
+run:
+	@if [ ! -f .env ]; then \
+		echo "❌ .env file is missing. Please copy it from .env-example"; \
+		exit 1; \
+	fi
+	./venv/Scripts/python src/main.py $(ARGS) | tee ./logs/run_$(shell date +%Y-%m-%d_%H-%M-%S).log
+
 run-step-1:
 	make run ARGS="--steps 1"
 

@@ -228,6 +228,36 @@ def test_handle_folders_and_files_success(tmp_path, keywords_mapping):
     assert not errors
 
 
+def test_handle_folders_without_files_success(tmp_path, keywords_mapping):
+    folder = tmp_path / "mixed"
+    folder.mkdir()
+    sub = folder / "RecursoFolder"
+    sub.mkdir()
+    moved = []
+    renamed = []
+    merged = []
+    orphans = []
+    errors = []
+    handle_folders_and_files(
+        str(folder),
+        [sub.name],
+        [],
+        keywords_mapping,
+        False,
+        moved,
+        renamed,
+        merged,
+        orphans,
+        errors,
+    )
+    # Renamed subfolder to C08Recurso
+    assert (folder / "C08Recurso").exists()
+    dest = folder / "01PrimeraInstancia" / "C01Principal"
+    assert not dest.exists()
+    assert not orphans
+    assert not errors
+
+
 def test_handle_folders_and_files_unrecognized(tmp_path, keywords_mapping):
     folder = tmp_path / "mixed2"
     folder.mkdir()
@@ -254,3 +284,5 @@ def test_handle_folders_and_files_unrecognized(tmp_path, keywords_mapping):
     )
     assert orphans
     assert orphans[0][0].endswith("file2.txt")
+    dest = folder / "01PrimeraInstancia" / "C01Principal"
+    assert not dest.exists()

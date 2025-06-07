@@ -296,6 +296,8 @@ def move_files_to_new_c01(
     Creates 01PrimeraInstancia/C01Principal if needed and moves
     top-level files there, resolving name collisions.
     """
+    if len(file_names) == 0:
+        return
     target = os.path.join(folder_path, "01PrimeraInstancia", "C01Principal")
     os.makedirs(target, exist_ok=True)
     for name in file_names:
@@ -357,20 +359,22 @@ def handle_folders_and_files(
             folder_path, file_names, simulate, moved_report, error_report
         )
     else:
-        c01_path = os.path.join(
-            folder_path, "01PrimeraInstancia", "C01Principal"
-        )
-        os.makedirs(c01_path, exist_ok=True)
-        for name in file_names:
-            src = os.path.join(folder_path, name)
-            dst = os.path.join(c01_path, name)
-            unique_dst = get_unique_name(dst)
-            moved_report.append([src, unique_dst])
-            if not simulate:
-                try:
-                    os.rename(src, unique_dst)
-                except Exception as e:
-                    error_report.append([src, f"Failed to move: {e}"])
+        if len(file_names) > 0:
+            c01_path = os.path.join(
+                folder_path, "01PrimeraInstancia", "C01Principal"
+            )
+            os.makedirs(c01_path, exist_ok=True)
+
+            for name in file_names:
+                src = os.path.join(folder_path, name)
+                dst = os.path.join(c01_path, name)
+                unique_dst = get_unique_name(dst)
+                moved_report.append([src, unique_dst])
+                if not simulate:
+                    try:
+                        os.rename(src, unique_dst)
+                    except Exception as e:
+                        error_report.append([src, f"Failed to move: {e}"])
 
 
 def handle_folder(
