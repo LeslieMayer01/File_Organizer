@@ -1,0 +1,34 @@
+## ───────────────────────────────
+## 🧪 Development & Testing
+## ───────────────────────────────
+VENV := venv
+PYTHON := python
+
+setup:
+	$(PYTHON) -m venv $(VENV)
+	$(VENV)/Scripts/python -m pip install --upgrade pip
+	$(VENV)/Scripts/pip install -r requirements.txt
+	$(VENV)/Scripts/pre-commit install
+	@mkdir -p reports/
+	@mkdir -p logs/
+	@echo "✅ Setup Completed."
+
+test:
+	@echo "🧪 Running tests..."
+	pytest -v
+
+lint:
+	@echo "🧼 Running linter..."
+	./venv/Scripts/pre-commit run --all-files
+
+format:
+	@echo "🎨 Formatting code..."
+	ruff format .
+
+typecheck:
+	@echo "🔍 Running type checks..."
+	mypy src/
+
+coverage:
+	@echo "📊 Generating coverage report..."
+	pytest --cov=src --cov-report=term-missing

@@ -1,115 +1,189 @@
 # 📁 File Organizer & Report Generator (Python)
 
-This project is a collection of Python scripts that organize external folders
-and files based on naming rules and generate various reports in CSV format.
+This project is a modular set of Python scripts designed to clean, format,
+organize, and standardize folders of legal case files. It also produces
+CSV and Excel reports for traceability and institutional archiving.
 
-## 📌 Features
+---
 
-- Cleans empty folders
-- Renames folders and files based on rules and a dictionary
-- Organizes files into structured folders (e.g., `C01_`, `C04_`)
-- Generates multiple CSV reports:
-  - All folder names with paths
-  - Unique folder names
-  - File type extensions and counts
-  - Excel files with the word "indice" in the name
-- Identifies empty files and files without extensions
+## 🧭 Table of Contents
 
-## 🚀 Getting Started
+- [Features](#features)
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Docker Workflow](#docker-workflow)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
 
-### ✅ Prerequisites
+---
 
-Ensure you have the following installed:
+## Features
+
+- Deletes empty folders and index files
+- Cleans `desktop.ini` system files
+- Formats folder names to a 23-digit identifier + suffix
+- Creates structured folders like `C01Principal`, `C05MedidasCautelares`
+- Groups files under `01PrimeraInstancia`, `02SegundaInstancia`, etc.
+- Generates `.xlsm` electronic index files
+- Detects folders with naming issues and produces reports
+
+TODO:
+- Improve reports of what have been done
+- Refactor to scan the entire folder or do it directly to one path
+- fix the filter because the folders can start with C0 or C1
+---
+
+## Requirements
 
 - Python 3.12+
 - pip
 - Git
-- [Chocolatey](https://chocolatey.org/install)
-- Make
-- (Optional) `make` to simplify setup
+- Docker (for isolated execution)
+- make
 
-## 🛠️ Environment Configuration
+---
 
-Before running the project, you must create a `.env` file based on the
-provided template:
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your/repo.git
+cd repo
+```
+
+### 2. Configure `.env`
 
 ```bash
 cp .env-example .env
 ```
 
-This file contains environment variables required by the scripts, such as
-directory paths or configuration settings.
+Define `FOLDER_TO_ORGANIZE`, simulation flags, and paths to resources.
 
-Make sure to adjust the values in `.env` according to your local setup.
-
-### 🔧 Setup
-
-You can run the setup automatically with `make`:
+### 3. Run environment checks and Docker image build
 
 ```bash
-make check      # Check prerequisites
-make setup      # Create virtual environment and install dependencies
+make check-all
+make docker-build
 ```
 
-Or manually:
+---
+
+## Usage
+
+### ▶ Run specific step(s)
 
 ```bash
-python -m venv venv
-venv\Scripts\activate      # On Windows
-source venv/bin/activate  # On Linux/macOS
-
-pip install -r requirements.txt
-pre-commit install
+make docker-run ARGS="--steps 1"
 ```
 
-## 🧩 Usage
-
-Run a specific script (e.g. generate the index file):
+You can combine multiple steps:
 
 ```bash
-make run ARGS="--steps 1 2 3"
+make docker-run ARGS="--steps 1 2 3"
 ```
 
-## 📂 Project Structure
+Each step generates reports under:
+
+```bash
+reports/step_<n>/
+```
+
+---
+
+## Docker Workflow
+
+All scripts run inside a container using:
+
+```bash
+make docker-run ARGS="--steps 4"
+```
+
+The folder defined in `.env` as `FOLDER_TO_ORGANIZE` is mounted at `/data`
+inside the container. All reports are mounted to `/app/reports`.
+
+You can rebuild or clean the image:
+
+```bash
+make docker-build
+make docker-clean
+```
+
+---
+
+## Development
+
+Run tests and validations locally:
+
+```bash
+make lint        # Ruff linter
+make test        # Run all unit tests
+make typecheck   # mypy static type check
+make coverage    # Show test coverage
+make format      # Auto-format with ruff
+```
+
+To run a step outside Docker:
+
+```bash
+make run-step-4
+```
+
+---
+
+## Documentation
+
+All scripts are documented in Markdown format in `docs/steps/`. The main
+index is located at:
+
+```text
+docs/index.md
+```
+
+Each step has:
+
+- Description and goal
+- Folder structure before/after
+- Sample reports
+- How to run and simulate
+
+You can validate docs with:
+
+```bash
+make docs-validate
+```
+
+---
+
+## Project Structure
 
 ```text
 .
-├── data/                     # Helper files with data required by the scripts
-├── docs/                     # Extra documentation
-├── src/                      # Source of python code
-├── tests/                    # Unit tests
-├── v0-1/                     # Deprecated scripts (Will be removed)
-├── tests/                    # Python virtual environment
-├── .gitignore                # G configurations
-├── .pre-commit-config.yaml   # Linting rules
-├── requirements.txt          # Python requirements
-├── README.md                 # Main documentation page
-└── Makefile                  # Helper commands to run the project
+├── Makefile                 # Main Makefile
+├── makefiles/               # Sub-makefiles (docker, dev, docs, steps)
+├── src/                     # Python scripts (step1 to step9)
+├── tests/                   # Unit tests
+├── reports/                 # Generated output
+├── docs/
+│   ├── index.md             # Documentation index
+│   ├── steps/               # Step-by-step documentation
+│   ├── references/          # Guidelines and conventions
+│   └── assets/              # Images, diagrams
+├── .env                     # Environment variables
+├── requirements.txt         # Dependencies
+└── README.md
 ```
 
-## 🧪 Development
+---
 
-To run linting and enforce code standards:
+## Contributing
 
-```bash
-make lint
-```
+Pull requests are welcome. For significant changes, please open an issue
+first and describe your proposal.
 
-Pre-commit hooks are configured for:
+---
 
-- black
-- flake8
-- isort
-- end-of-file-fixer
-- trailing-whitespace
-
-## 🧑‍💻 Development Workflow
-
-- Continuous Integration is powered by GitHub Actions. See:
-[`docs/ci_pipeline.md`](docs/ci_pipeline.md)
-- Repository ownership is managed through [`CODEOWNERS`](CODEOWNERS) — see
-[`docs/codeowners_explained.md`](docs/codeowners_explained.md)
-
-## 🙌 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first.
+ℹ️ Created with 💻 and 🧠 by Jorge and Leslie

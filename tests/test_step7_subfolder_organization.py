@@ -44,6 +44,15 @@ def test_is_c0_structure_only_true(tmp_path: Path) -> None:
     assert is_c0_structure_only(str(path))
 
 
+def test_is_c0_structure_and_01_folder(tmp_path: Path) -> None:
+    path = tmp_path / "test_folder"
+    path.mkdir()
+    (path / "01PrimeraInstancia").mkdir()
+    (path / "C01test").mkdir()
+    (path / "C05prueba").mkdir()
+    assert is_c0_structure_only(str(path))
+
+
 def test_is_c0_structure_only_false(tmp_path: Path) -> None:
     path = tmp_path / "bad_folder"
     path.mkdir()

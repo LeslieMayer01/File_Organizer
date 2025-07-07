@@ -33,13 +33,7 @@ def should_process(file: str) -> bool:
 
 
 def sort_files(files: List[str], root: str) -> List[str]:
-    """Sort files based on naming or modification date."""
-    all_numeric = all(re.match(r"^\d+", f) for f in files)
-
-    if all_numeric:
-        key_len = 3 if len(files) > 100 else 2
-        return sorted(files, key=lambda x: x[:key_len], reverse=True)
-
+    """Always sort files by modification time (oldest first)."""
     return sorted(files, key=lambda x: os.path.getmtime(os.path.join(root, x)))
 
 
