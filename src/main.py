@@ -16,6 +16,7 @@ STEPS = {
     7: "step7_subfolder_organization",
     8: "step8_create_electronic_index",
     9: "step9_check_folders",
+    10: "step10_folders_repor",
     # Agrega más pasos aquí según tu proyecto
 }
 

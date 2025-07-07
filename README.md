@@ -30,6 +30,10 @@ CSV and Excel reports for traceability and institutional archiving.
 - Generates `.xlsm` electronic index files
 - Detects folders with naming issues and produces reports
 
+TODO:
+- Improve reports of what have been done
+- Refactor to scan the entire folder or do it directly to one path
+- fix the filter because the folders can start with C0 or C1
 ---
 
 ## Requirements

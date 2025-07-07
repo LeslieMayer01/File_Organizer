@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import warnings
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
@@ -12,6 +13,12 @@ from openpyxl.styles import Alignment, Border, Side
 
 import config
 from utils.reports import write_report
+
+warnings.filterwarnings(
+    "ignore",
+    "Print area cannot be set to Defined name: .*",
+    UserWarning
+)
 
 
 def run() -> None:
@@ -69,7 +76,7 @@ def filter_target_folders(dirs: List[str]) -> List[str]:
 
 def process_sub_folders(base_folder: str) -> dict:
     for sub_root, sub_dirs, _ in os.walk(base_folder):
-        for sub_dir in [d for d in sub_dirs if d.startswith("C0")]:
+        for sub_dir in [d for d in sub_dirs if d.startswith(("C0","C1"))]:
             folder_path = os.path.join(sub_root, sub_dir)
             index_number = "".join(filter(str.isdigit, sub_dir[2:]))
             radicado = get_radicado_number(folder_path)

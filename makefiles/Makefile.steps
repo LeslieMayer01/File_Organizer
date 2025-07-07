@@ -35,3 +35,6 @@ run-step-8:
 
 run-step-9:
 	make run ARGS="--steps 9"
+
+run-step-10:
+	make run ARGS="--steps 10"

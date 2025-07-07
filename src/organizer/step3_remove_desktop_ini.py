@@ -59,7 +59,7 @@ def remove_desktop_ini_files(
 
     for current_root, _, files in os.walk(root_path):
         for file_name in files:
-            if file_name.lower() == "desktop.ini":
+            if file_name.lower().endswith("desktop.ini"):
                 file_path = os.path.join(current_root, file_name)
                 if simulate:
                     results.append(("Simulated", file_path))
